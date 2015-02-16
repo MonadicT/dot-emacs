@@ -45,7 +45,7 @@ Display column number.
 #+begin_src emacs-lisp
 (global-set-key "\C-c\C-k" 'copy-region-as-kill)
 (global-set-key "\C-ck" 'copy-region-as-kill)
-#+end_SEC
+#+end_src
 
 ** Scroll up and down
 
