@@ -64,7 +64,7 @@ Here is the code to install to =zenburn= theme and load it. Default
 cursor and mouse colors are adjusted to my personal liking.
 #+BEGIN_SRC emacs-lisp
 (package-install-if-needed 'zenburn-theme)
-(load-theme 'zenburn t t)
+(load-theme 'zenburn t)
 (set-cursor-color "green")
 (set-mouse-color "green")
 #+END_SRC
@@ -235,27 +235,35 @@ Tell org-mode to skip inserting its default CSS and link to article.css
 (setf org-babel-use-quick-and-dirty-noweb-expansion t)
 #+END_SRC
 
+* Packages
+Install packages I need.
+#+BEGIN_SRC emacs-lisp
+  ;; gist
+  (when (not (package-installed-p 'gist))
+    (package-install 'gist))
+#+END_SRC
+
 * Modes
   Install modes that are not bundled with emacs.
 
   #+BEGIN_SRC emacs-lisp
-  ;; Magit
-  (when (not (package-installed-p 'magit))
-    (package-install 'magit))
+    ;; Magit
+    (when (not (package-installed-p 'magit))
+      (package-install 'magit))
 
-  ;; Clojure
-  (when (not (package-installed-p 'clj-mode))
-    (package-install 'clj-mode))
-  (when (not (package-installed-p 'cider))
-    (package-install 'cider))
+    ;; Clojure
+    (when (not (package-installed-p 'clj-mode))
+      (package-install 'clj-mode))
+    (when (not (package-installed-p 'cider))
+      (package-install 'cider))
 
-  ;; javascript
-  (when (not (package-installed-p 'js2-mode))
-    (package-install 'js2-mode))
+    ;; javascript
+    (when (not (package-installed-p 'js2-mode))
+      (package-install 'js2-mode))
 
-  ;; graphviz
-  (when (not (package-installed-p 'graphviz-dot-mode))
-    (package-install 'graphviz-dot-mode))
+    ;; graphviz
+    (when (not (package-installed-p 'graphviz-dot-mode))
+      (package-install 'graphviz-dot-mode))
 
   #+END_SRC
 
