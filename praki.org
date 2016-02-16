@@ -1,113 +1,94 @@
+* Installing emacs
+The best way to install emacs is by compiling it yourself. The
+following commands clone emacs repo and build it on my Ubuntu system.
+
+#+BEGIN_SRC shell
+git clone git://git.savannah.gnu.org/emacs.git
+git checkout emacs-25.0.91
+./autogen.sh
+./configure
+make
+sudo make install
+#+END_SRC
+
+org-mode is pretty essential. Sadly, emacs and org-mode are not always
+in sync. The best way to manage this is to build org-mode from
+source. You must know the right version of org-mode that works with
+emacs and proceed from tehre.
+
+#+BEGIN_SRC shell
+git clone git://orgmode.org/org-mode.git
+make
+sudo make install
+#+END_SRC
+
+* Package repos
+#+BEGIN_SRC emacs-lisp
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("marmalade" . "https://marmalade-repo.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+
+(package-initialize)
+#+END_SRC
+
+Here is a convenience function to install packages conditionally.
+#+BEGIN_SRC emacs-lisp
+  (defun package-install-if-needed (pkg)
+    (when (not (package-installed-p pkg))
+      (package-install pkg)))
+
+#+END_SRC
+
 * Emacs customization
-Copy this to /.emacs.d/ directory and rename it to match the user
-name. Emacs will automatically load it.
-** Debug on error
+Tweak emacs behavior to suit my taste better. No menu and toolbar. No
+tabs. No trailing whitespace.
+
 #+begin_src emacs-lisp
 (setq debug-on-error t)
-#+end_src
-
-** Turn off splash screen
-#+begin_src emacs-lisp
-(setq inhibit-startup-message t)        ; no splash screen
-#+end_src
-
-** Turn of menu and tool bar
-#+begin_src emacs-lisp
+(setq inhibit-startup-message t)    ;; no splash screen
 (menu-bar-mode 0)
 (tool-bar-mode 0)
+(fset 'yes-or-no-p 'y-or-n-p)       ;; replace yes-no with y-n
+(auto-fill-mode -1)                 ;; turn off auto-fill-mode
+(column-number-mode 1)              ;; display column number in mode line
+(desktop-save-mode 1)               ;; enable desktop save
+(setq ls-lisp-dirs-first t)         ;; display directories first in dir-mode
+(setq-default indent-tabs-mode nil) ;; indent with spaces
+(setq-default show-trailing-whitespace t)
+(setq-default tab-width 4)          ;; tab width be 4 spaces
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(set-frame-font "DejaVu Sans Mono-11")
 #+end_src
 
-** Turn off auto-fill-mode
-#+begin_src emacs-lisp
-(auto-fill-mode -1)
-#+end_src
-** Mode line customization
-Display column number.
-#+begin_src emacs-lisp
-(column-number-mode 1)
-#+end_src
+Here is the code to install to =zenburn= theme and load it. Default
+cursor and mouse colors are adjusted to my personal liking.
+#+BEGIN_SRC emacs-lisp
+(package-install-if-needed 'zenburn-theme)
+(load-theme 'zenburn t t)
+(set-cursor-color "green")
+(set-mouse-color "green")
+#+END_SRC
 
-** Save desktop state
-#+begin_src emacs-lisp
-(desktop-save-mode 1)
-#+end_src
-** Display dirs first in dired
-#+begin_src emacs-lisp
-(setq ls-lisp-dirs-first t)
-#+end_src
+* Global key bindings
 
-** Replace tabs with spaces
-#+begin_src emacs-lisp
-(setq-default indent-tabs-mode nil)
-#+end_src
+  My global key bindings.
 
-** Copy region
-#+begin_src emacs-lisp
+  | Copy region  | [C-c C-k] |
+  | Scroll up    | [M-p]     |
+  | Scroll down  | [M-n]     |
+  | Magit status | [C-c m]   |
+
+  #+begin_src emacs-lisp
 (global-set-key "\C-c\C-k" 'copy-region-as-kill)
 (global-set-key "\C-ck" 'copy-region-as-kill)
-#+end_src
-
-** Scroll up and down
-
-#+begin_src emacs-lisp
 (global-set-key "\M-n"  (lambda () (interactive) (scroll-up 1)))
 (global-set-key "\M-p"  (lambda () (interactive) (scroll-down 1)))
-#+end_src
+(global-set-key "\C-cm"  'magit-status)
 
-** Trailing whitespace
-Show trailing whitespace and delete it when buffer is saved.
-#+begin_src emacs-lisp
-(setq-default show-trailing-whitespace t)
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-#+end_src
+;;(global-set-key (kbd "C-x C-f") #'helm-find-files)
+  #+end_src
 
-** Set default font
-Prefer DejaVu instead of Bitstream for its wider coverage.
-#+begin_src emacs-lisp
-(set-frame-font "DejaVu Sans Mono-11")
-;;(set-frame-font "Bitstream Vera Sans Mono-11")
-#+end_src
-
-* Require cl
-#+begin_src emacs-lisp
-;;(require 'cl)
-(setq debug-on-error t)
-#+end_src
-* Ido mode customizations
-** Reset ido-use-filename-at-point
-We don't want ido to open anything at cursor.
-#+begin_src emacs-lisp
-(setf ido-use-filename-at-point nil)
-#+end_src
-
-** Make ido use completion-ignored-extensions
-Ignore these extensions in =ido-file-open=
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'completion-ignored-extensions ".clj")
-(add-to-list 'completion-ignored-extensions ".tex")
-(add-to-list 'completion-ignored-extensions ".orig")
-(add-to-list 'completion-ignored-extensions ".pdf")
-#+END_SRC
-
-** Set order of file extensions
-List =.org= files first followed by others.
-#+BEGIN_SRC emacs-lisp
-  (setq ido-file-extensions-order '(".org" ".lc"))
-#+END_SRC
-
-* Elisp utility functions
-** Find directory containing a specified file
-#+begin_src emacs-lisp
-(defun find-nearest-containing-dir(f)
-  (let ((fn (buffer-file-name)))
-    (let ((dir (file-name-directory fn)))
-      (while (and (not (file-exists-p (concat dir "/" f)))
-                  (not (equal dir (file-truename (concat dir "/..")))))
-        (setf dir (file-truename (concat dir "/.."))))
-      (if (file-exists-p (concat dir "/" f))
-          dir))))
-#+end_src
-
+* Utility functions
 ** sort-words
 #+begin_src emacs-lisp
 (defun sort-words(start end)
@@ -119,17 +100,67 @@ List =.org= files first followed by others.
     (delete-region start end)
     (insert sorted-str)))
 #+end_src
-
 ** Indent entire buffer
-Indents buffer contents without having to select it first.
-#+begin_src emacs-lisp
+   Indents buffer contents without having to select it first.
+   #+begin_src emacs-lisp
   (defun indent-buffer ()
     (interactive)
     (indent-region (point-min) (point-max)))
 
 (global-set-key [?\C-\M-=] #'indent-buffer)
-#+end_src
+   #+end_src
 
+* Spell check
+Turn on spell checking in all modes. Errors are corrected with =M-$= key.
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'find-file-hooks 'turn-on-flyspell)
+#+END_SRC
+
+* Opening files
+Use *helm* to manage opening files and such. This configuration is
+from helm's documentation. When using helm to complete, the following keys are handy.
+
+| =C-n=    | Move to next entry        |
+| =C-p=    | Move to previous entry    |
+| =C-v=    | Move to next page         |
+| =M-v=    | Move to previous page     |
+| =M-<=    | Move to top               |
+| =M->=    | Move to bottom            |
+| =C-w=    | Yank word at point        |
+| =M-n=    | Yank symbol at point      |
+| =C-jC-j= | View content of selection |
+| /        | Root directory            |
+| ~/       | Home directory            |
+
+
+#+BEGIN_SRC emacs-lisp
+(package-install-if-needed 'helm)
+(require 'helm)
+(require 'helm-config)
+(global-set-key (kbd "C-c h") 'helm-command-prefix)
+(global-unset-key (kbd "C-x c"))
+
+(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ;; rebind tab to run persistent action
+(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)   ;; make TAB works in terminal
+(define-key helm-map (kbd "C-z")  'helm-select-action)              ;; list actions using C-z
+
+(when (executable-find "curl")
+  (setq helm-google-suggest-use-curl-p t))
+
+(setq helm-split-window-in-side-p           t                       ;; open helm buffer inside current window, not occupy whole other window
+      helm-move-to-line-cycle-in-source     t                       ;; move to end or beginning of source when reaching top or bottom of source.
+      helm-ff-search-library-in-sexp        t                       ;; search for library in `require' and `declare-function' sexp.
+      helm-scroll-amount                    8                       ;; scroll 8 lines other window using M-<next>/M-<prior>
+      helm-ff-file-name-history-use-recentf t)
+
+(global-set-key (kbd "C-x C-f") 'helm-find-files)                   ;; replace find-files
+(global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
+(setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
+
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+(helm-mode 1)
+#+END_SRC
 
 * Org mode
 ** org-mode tweaks for code blocks
@@ -203,3 +234,84 @@ Tell org-mode to skip inserting its default CSS and link to article.css
 #+BEGIN_SRC emacs-lisp
 (setf org-babel-use-quick-and-dirty-noweb-expansion t)
 #+END_SRC
+
+* Modes
+  Install modes that are not bundled with emacs.
+
+  #+BEGIN_SRC emacs-lisp
+  ;; Magit
+  (when (not (package-installed-p 'magit))
+    (package-install 'magit))
+
+  ;; Clojure
+  (when (not (package-installed-p 'clj-mode))
+    (package-install 'clj-mode))
+  (when (not (package-installed-p 'cider))
+    (package-install 'cider))
+
+  ;; javascript
+  (when (not (package-installed-p 'js2-mode))
+    (package-install 'js2-mode))
+
+  ;; graphviz
+  (when (not (package-installed-p 'graphviz-dot-mode))
+    (package-install 'graphviz-dot-mode))
+
+  #+END_SRC
+
+* Blogs
+  Setup =elfeed= for reading RSS.
+
+  #+BEGIN_SRC emacs-lisp
+    (package-install-if-needed 'elfeed)
+(require 'elfeed)
+    ;; List of my feed urls
+    (setq my-feeds '(
+                     "http://engineering.linkedin.com/taxonomy/term/1/feed"
+                     "http://code.google.com/feeds/updates.xml"
+                     "http://nerds.airbnb.com/feed/"
+                     "http://engineeringblog.yelp.com/atom.xml"
+                     "http://blog.docker.io/feed/"
+                     "http://blog.docker.io/feed/"
+                     "http://techblog.netflix.com/rss.xml"
+                     "http://feeds.feedburner.com/AmazonWebServicesBlog"
+                     "https://developers.facebook.com/blog/"
+                     "http://news.ycombinator.com/rss"
+                     "http://feeds.feedburner.com/TheDailyPuppy"
+                     "http://feeds.wired.com/wired/index"
+                     "http://rss.cnn.com/rss/cnn_topstories.rss"
+                     "http://www.infoq.com/feed?token=lfDrJhbuQ3dOvzpD0piQU2W3q50LEvS2"
+                     " http://engineering.twitter.com/feeds/posts/default?alt=rss"))
+
+    ;; Add them to elfeed when necessary
+    (mapcar
+     (lambda (url)
+       (when (not (cl-member url (elfeed-feed-list) :test 'string=))
+         (elfeed-add-feed url)))
+     my-feeds)
+
+    ;; hotkey to open blog window
+    (global-set-key (kbd "C-x w") 'elfeed)
+  #+END_SRC
+
+* Useful key bindings
+
+  | Mode              | Key          | Description            |
+  |-------------------+--------------+------------------------|
+  | graphviz-dot-mode | =C-c c=      | Compile graph          |
+  |                   | =C-c p=      | Preview                |
+  |-------------------+--------------+------------------------|
+  | org-mode          | =C-c C-e lo= | Export to pdf and open |
+  |-------------------+--------------+------------------------|
+  | helm-mode         | =C-n=        | Select next in list    |
+  |                   | =C-p=        | Select prev in list    |
+  |                   | =M-n=        | Move to next section   |
+  |                   | =M-p=        | Move to prev section   |
+  |-------------------+--------------+------------------------|
+  | (global)          | =C-x w=      | Blog window            |
+  |                   | =C-c m=      | Magit status           |
+  |                   | =C-M ==      | Indent buffer          |
+  |                   | =C-c C-k=    | Kill region            |
+  |                   | =M-p=        | Scroll up              |
+  |                   | =M-n=        | Scroll down            |
+  |                   | =C-C h=      | Helm prefix            |
