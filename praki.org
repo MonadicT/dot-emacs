@@ -136,6 +136,8 @@ from helm's documentation. When using helm to complete, the following keys are h
 
 #+BEGIN_SRC emacs-lisp
 (package-install-if-needed 'helm)
+(package-install-if-needed 'helm-google)
+(package-install-if-needed 'w3m)
 (require 'helm)
 (require 'helm-config)
 (global-set-key (kbd "C-c h") 'helm-command-prefix)
