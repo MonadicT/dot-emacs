@@ -280,6 +280,33 @@ Install packages I need.
 
   #+END_SRC
 
+* Setting up Go
+THese bits setup programming mode for golang
+#+BEGIN_SRC emacs-lisp
+  ;; install go-mode and go-eldoc package
+  (package-install-if-needed 'go-mode)
+  (package-install-if-needed 'go-eldoc)
+  (package-install-if-needed 'go-autocomplete)
+
+  ;; enable eldoc for go
+  (add-hook
+   'go-mode-hook
+   (lambda()
+     ;; compile command and keybinding for go
+     (setq compile-command "go build -v && go test -v && go vet")
+     (define-key (current-local-map) "\C-c\C-c" 'compile)
+     ;; enable eldoc
+     (go-eldoc-setup)
+     ;; run gofmt before saving go source
+     (setq gofmt-command "goimports")
+     ;; Key binding to jum to defn
+     (local-set-key (kbd "M-.") 'godef-jump)))
+
+  ;; setup autocompletion
+  (require 'auto-complete-config)
+  (require 'go-autocomplete)
+
+#+END_SRC
 * Blogs
   Setup =elfeed= for reading RSS.
 
