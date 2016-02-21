@@ -69,6 +69,15 @@ cursor and mouse colors are adjusted to my personal liking.
 (set-mouse-color "green")
 #+END_SRC
 
+Make copy and paste from emacs and other programs. Under X11, the
+following block makes this work. Highlighted text can be inserted with
+=Shift-Insert= key.
+
+#+BEGIN_SRC emacs-lisp
+(setq x-select-enable-clipboard t)
+(setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
+#+END_SRC
+
 * Global key bindings
 
   My global key bindings.
