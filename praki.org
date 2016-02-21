@@ -241,8 +241,10 @@ Tell org-mode to skip inserting its default CSS and link to article.css
 Install packages I need.
 #+BEGIN_SRC emacs-lisp
   ;; gist
-  (when (not (package-installed-p 'gist))
-    (package-install 'gist))
+  (package-install-if-needed 'gist)
+
+  ;; auto-complete
+  (package-install-if-needed 'auto-complete)
 #+END_SRC
 
 * Modes
