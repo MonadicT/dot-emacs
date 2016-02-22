@@ -40,24 +40,31 @@ Here is a convenience function to install packages conditionally.
 #+END_SRC
 
 * Emacs customization
+Before we can cuastomize, we need to know the environment emacs is
+running on. =display-graphic-p= informs us if we are running in a
+graphical environment. =window-system= is either =x= or =w32=
+depending on the OS environment.
+
 Tweak emacs behavior to suit my taste better. No menu and toolbar. No
 tabs. No trailing whitespace.
 
 #+begin_src emacs-lisp
-(setq debug-on-error t)
-(setq inhibit-startup-message t)    ;; no splash screen
-(menu-bar-mode 0)
-(tool-bar-mode 0)
-(fset 'yes-or-no-p 'y-or-n-p)       ;; replace yes-no with y-n
-(auto-fill-mode -1)                 ;; turn off auto-fill-mode
-(column-number-mode 1)              ;; display column number in mode line
-(desktop-save-mode 1)               ;; enable desktop save
-(setq ls-lisp-dirs-first t)         ;; display directories first in dir-mode
-(setq-default indent-tabs-mode nil) ;; indent with spaces
-(setq-default show-trailing-whitespace t)
-(setq-default tab-width 4)          ;; tab width be 4 spaces
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-(set-frame-font "DejaVu Sans Mono-11")
+  (setq debug-on-error t)
+  (setq inhibit-startup-message t)    ;; no splash screen
+  (menu-bar-mode 0)
+  (tool-bar-mode 0)
+  (fset 'yes-or-no-p 'y-or-n-p)       ;; replace yes-no with y-n
+  (auto-fill-mode -1)                 ;; turn off auto-fill-mode
+  (column-number-mode 1)              ;; display column number in mode line
+  (desktop-save-mode 1)               ;; enable desktop save
+  (setq ls-lisp-dirs-first t)         ;; display directories first in dir-mode
+  (setq-default indent-tabs-mode nil) ;; indent with spaces
+  (setq-default
+   show-trailing-whitespace t)        ;; visual indication of trailing space
+  (setq-default tab-width 4)          ;; tab width be 4 spaces
+  (add-hook 'before-save-hook         ;; delete trailing space
+            'delete-trailing-whitespace)
+  (set-frame-font "DejaVu Sans Mono-11")
 #+end_src
 
 Here is the code to install to =zenburn= theme and load it. Default
@@ -74,8 +81,9 @@ following block makes this work. Highlighted text can be inserted with
 =Shift-Insert= key.
 
 #+BEGIN_SRC emacs-lisp
-(setq x-select-enable-clipboard t)
-(setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
+  (when (eq window-system 'x)
+    (setq x-select-enable-clipboard t)
+    (setq interprogram-paste-function 'x-cut-buffer-or-selection-value))
 #+END_SRC
 
 * Global key bindings
