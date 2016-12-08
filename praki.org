@@ -1,3 +1,10 @@
+* How to use this file
+=git clone= this repo. Create =~/.emacs.d/init.el= with the following and load it.
+#+BEGIN_SRC emacs-lisp
+(require 'org)
+(org-babel-load-file "~/workspace/dot-emacs/praki.org")
+#+END_SRC
+
 * Installing emacs
 The best way to install emacs is by compiling it yourself. The
 following commands clone emacs repo and build it on my Ubuntu system.
@@ -152,8 +159,8 @@ from helm's documentation. When using helm to complete, the following keys are h
 
 
 #+BEGIN_SRC emacs-lisp
-(package-install-if-needed 'helm)
-(package-install-if-needed 'helm-google)
+;(package-install-if-needed 'helm)
+;(package-install-if-needed 'helm-google)
 (package-install-if-needed 'w3m)
 (require 'helm)
 (require 'helm-config)
@@ -313,6 +320,12 @@ THese bits setup programming mode for golang
   ;; setup autocompletion
   (require 'auto-complete-config)
   (require 'go-autocomplete)
+
+#+END_SRC
+* Git
+Set up magit mode for working with git
+#+BEGIN_SRC emacs-lisp
+(package-install-if-needed 'magit)
 
 #+END_SRC
 * Blogs
