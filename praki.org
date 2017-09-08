@@ -1,8 +1,8 @@
 * How to use this file
 =git clone= this repo. Create =~/.emacs.d/init.el= with the following and load it.
-#+BEGIN_SRC emacs-lisp
-(require 'org)
-(org-babel-load-file "~/workspace/dot-emacs/praki.org")
+#+BEGIN_SRC exmaple
+;;(require 'org)
+;;(org-babel-load-file "~/stuff/dot-emacs/praki.org")
 #+END_SRC
 
 * Installing emacs
@@ -181,6 +181,7 @@ from helm's documentation. When using helm to complete, the following keys are h
       helm-ff-file-name-history-use-recentf t)
 
 (global-set-key (kbd "C-x C-f") 'helm-find-files)                   ;; replace find-files
+(global-set-key (kbd "C-x b") 'helm-mini)                           ;; replace switch-to-buffer
 (global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
 (setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
 
@@ -365,6 +366,7 @@ Set up magit mode for working with git
 
 * Useful key bindings
 
+
   | Mode              | Key          | Description            |
   |-------------------+--------------+------------------------|
   | graphviz-dot-mode | =C-c c=      | Compile graph          |
@@ -384,3 +386,8 @@ Set up magit mode for working with git
   |                   | =M-p=        | Scroll up              |
   |                   | =M-n=        | Scroll down            |
   |                   | =C-C h=      | Helm prefix            |
+* Load-path extension
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/lisp")
+
+#+END_SRC
