@@ -1,8 +1,8 @@
 * How to use this file
 =git clone= this repo. Create =~/.emacs.d/init.el= with the following and load it.
 #+BEGIN_SRC exmaple
-;;(require 'org)
-;;(org-babel-load-file "~/stuff/dot-emacs/praki.org")
+(require 'org)
+(org-babel-load-file "~/stuff/dot-emacs/praki.org")
 #+END_SRC
 
 * Installing emacs
@@ -21,7 +21,7 @@ sudo make install
 org-mode is pretty essential. Sadly, emacs and org-mode are not always
 in sync. The best way to manage this is to build org-mode from
 source. You must know the right version of org-mode that works with
-emacs and proceed from tehre.
+emacs and proceed from there.
 
 #+BEGIN_SRC shell
 git clone git://orgmode.org/org-mode.git
@@ -29,8 +29,8 @@ make
 sudo make install
 #+END_SRC
 
-* Package repos
-#+BEGIN_SRC emacs-lisp
+* Package reps
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
 (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
                          ("marmalade" . "https://marmalade-repo.org/packages/")
                          ("melpa" . "https://melpa.org/packages/")))
@@ -39,7 +39,8 @@ sudo make install
 #+END_SRC
 
 Here is a convenience function to install packages conditionally.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+
   (defun package-install-if-needed (pkg)
     (when (not (package-installed-p pkg))
       (package-install pkg)))
@@ -47,7 +48,7 @@ Here is a convenience function to install packages conditionally.
 #+END_SRC
 
 * Emacs customization
-Before we can cuastomize, we need to know the environment emacs is
+Before we can customize, we need to know the environment emacs is
 running on. =display-graphic-p= informs us if we are running in a
 graphical environment. =window-system= is either =x= or =w32=
 depending on the OS environment.
@@ -55,7 +56,7 @@ depending on the OS environment.
 Tweak emacs behavior to suit my taste better. No menu and toolbar. No
 tabs. No trailing whitespace.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb-ref common-tweaks
   (setq debug-on-error t)
   (setq inhibit-startup-message t)    ;; no splash screen
   (menu-bar-mode 0)
@@ -74,47 +75,9 @@ tabs. No trailing whitespace.
   (set-frame-font "DejaVu Sans Mono-11")
 #+end_src
 
-Here is the code to install to =zenburn= theme and load it. Default
-cursor and mouse colors are adjusted to my personal liking.
-#+BEGIN_SRC emacs-lisp
-(package-install-if-needed 'zenburn-theme)
-(load-theme 'zenburn t)
-(set-cursor-color "green")
-(set-mouse-color "green")
-#+END_SRC
-
-Make copy and paste from emacs and other programs. Under X11, the
-following block makes this work. Highlighted text can be inserted with
-=Shift-Insert= key.
-
-#+BEGIN_SRC emacs-lisp
-  (when (eq window-system 'x)
-    (setq x-select-enable-clipboard t)
-    (setq interprogram-paste-function 'x-cut-buffer-or-selection-value))
-#+END_SRC
-
-* Global key bindings
-
-  My global key bindings.
-
-  | Copy region  | [C-c C-k] |
-  | Scroll up    | [M-p]     |
-  | Scroll down  | [M-n]     |
-  | Magit status | [C-c m]   |
-
-  #+begin_src emacs-lisp
-(global-set-key "\C-c\C-k" 'copy-region-as-kill)
-(global-set-key "\C-ck" 'copy-region-as-kill)
-(global-set-key "\M-n"  (lambda () (interactive) (scroll-up 1)))
-(global-set-key "\M-p"  (lambda () (interactive) (scroll-down 1)))
-(global-set-key "\C-cm"  'magit-status)
-
-;;(global-set-key (kbd "C-x C-f") #'helm-find-files)
-  #+end_src
-
 * Utility functions
 ** sort-words
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :noweb-ref util-fn
 (defun sort-words(start end)
   (interactive "r")
   (let* ((str (buffer-substring-no-properties start end))
@@ -126,67 +89,48 @@ following block makes this work. Highlighted text can be inserted with
 #+end_src
 ** Indent entire buffer
    Indents buffer contents without having to select it first.
-   #+begin_src emacs-lisp
-  (defun indent-buffer ()
-    (interactive)
-    (indent-region (point-min) (point-max)))
+   #+begin_src emacs-lisp :noweb-ref util-fn
+     (defun indent-buffer ()
+       (interactive)
+       (indent-region (point-min) (point-max)))
 
-(global-set-key [?\C-\M-=] #'indent-buffer)
    #+end_src
 
-* Spell check
-Turn on spell checking in all modes. Errors are corrected with =M-$= key.
+Bind this function to =C-M-==.
+#+BEGIN_SRC emacs-lisp :noweb-ref key-bindings
+     (global-set-key [?\C-\M-=] #'indent-buffer)
+#+END_SRC
 
-#+BEGIN_SRC emacs-lisp
+* Spell check
+Misspelled words are corrected with =M-$= or =C-.= or =C-;= keys.
+A word can be completed with =M-TAB=.
+
+Turn on spell checking in all modes.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref hooks
 (add-hook 'find-file-hooks 'turn-on-flyspell)
 #+END_SRC
 
-* Opening files
-Use *helm* to manage opening files and such. This configuration is
-from helm's documentation. When using helm to complete, the following keys are handy.
+=fly-spell= needs =aspell-en= package.
 
-| =C-n=    | Move to next entry        |
-| =C-p=    | Move to previous entry    |
-| =C-v=    | Move to next page         |
-| =M-v=    | Move to previous page     |
-| =M-<=    | Move to top               |
-| =M->=    | Move to bottom            |
-| =C-w=    | Yank word at point        |
-| =M-n=    | Yank symbol at point      |
-| =C-jC-j= | View content of selection |
-| /        | Root directory            |
-| ~/       | Home directory            |
+To check spelling in program comments, we need to enable
+=flyspell-prog-mode=.
 
+#+BEGIN_SRC emacs-lisp :noweb-ref hooks
+  (add-hook 'org-mode-hook
+            (lambda()
+              (flyspell-mode 1)))
 
-#+BEGIN_SRC emacs-lisp
-;(package-install-if-needed 'helm)
-;(package-install-if-needed 'helm-google)
-(package-install-if-needed 'w3m)
-(require 'helm)
-(require 'helm-config)
-(global-set-key (kbd "C-c h") 'helm-command-prefix)
-(global-unset-key (kbd "C-x c"))
+  (add-hook 'prog-mode-hook
+            (lambda ()
+              (flyspell-prog-mode)
+                                          ; ...
+              ))
+#+END_SRC
 
-(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ;; rebind tab to run persistent action
-(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)   ;; make TAB works in terminal
-(define-key helm-map (kbd "C-z")  'helm-select-action)              ;; list actions using C-z
-
-(when (executable-find "curl")
-  (setq helm-google-suggest-use-curl-p t))
-
-(setq helm-split-window-in-side-p           t                       ;; open helm buffer inside current window, not occupy whole other window
-      helm-move-to-line-cycle-in-source     t                       ;; move to end or beginning of source when reaching top or bottom of source.
-      helm-ff-search-library-in-sexp        t                       ;; search for library in `require' and `declare-function' sexp.
-      helm-scroll-amount                    8                       ;; scroll 8 lines other window using M-<next>/M-<prior>
-      helm-ff-file-name-history-use-recentf t)
-
-(global-set-key (kbd "C-x C-f") 'helm-find-files)                   ;; replace find-files
-(global-set-key (kbd "C-x b") 'helm-mini)                           ;; replace switch-to-buffer
-(global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
-(setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
-
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
-(helm-mode 1)
+Key binding.
+#+BEGIN_SRC emacs-lisp :noweb-ref key-bindings
+(define-key flyspell-mode-map (kbd "C-;") 'helm-flyspell-correct)
 #+END_SRC
 
 * Org mode
@@ -205,14 +149,15 @@ Customize =org-structure-template-alist=
 #+BEGIN_SRC emacs-lisp
   (add-to-list
    'org-structure-template-alist
-   '("C" "#+name: \n#+begin_src clojure :noweb yes\n\n#+end_src"))
+   '("C" "#+name: \n#+begin_src Closure :noweb yes\n\n#+end_src"))
 #+END_SRC
 
-** Activate embedded dot
+** Activate languages
 #+begin_src emacs-lisp
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((dot . t)))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t)
+     (dot . t)))
 
 #+end_src
 
@@ -262,9 +207,101 @@ Tell org-mode to skip inserting its default CSS and link to article.css
 (setf org-babel-use-quick-and-dirty-noweb-expansion t)
 #+END_SRC
 
+* Helm setup
+Use *helm* to manage opening files and such. This configuration is
+from helm's documentation. When using helm to complete, the following keys are handy.
+
+| =C-n=    | Move to next entry        |
+| =C-p=    | Move to previous entry    |
+| =M-v=    | Move to previous page     |
+| =C-v=    | Move to next page         |
+| =M-<=    | Move to top               |
+| =M->=    | Move to bottom            |
+| =C-w=    | Yank word at point        |
+| =M-n=    | Yank symbol at point      |
+| =C-jC-j= | View content of selection |
+| /        | Root directory            |
+| ~/       | Home directory            |
+
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+  (package-install-if-needed 'helm)
+  (package-install-if-needed 'helm-google)
+  (package-install-if-needed 'helm-dash)
+  (package-install-if-needed 'helm-flyspell)
+  (package-install-if-needed 'w3m)
+#+END_SRC
+
+Require helm packages.
+#+BEGIN_SRC emacs-lisp :noweb-ref require
+(require 'helm)
+(require 'helm-config)
+#+END_SRC
+
+Configure =helm= options.
+#+BEGIN_SRC emacs-lisp :noweb-ref package-setup
+(when (executable-find "curl")
+  (setq helm-google-suggest-use-curl-p t))
+
+(setq helm-split-window-in-side-p           t                       ;; open helm buffer inside current window, not occupy whole other window
+      helm-move-to-line-cycle-in-source     t                       ;; move to end or beginning of source when reaching top or bottom of source.
+      helm-ff-search-library-in-sexp        t                       ;; search for library in `require' and `declare-function' sexp.
+      helm-scroll-amount                    8                       ;; scroll 8 lines other window using M-<next>/M-<prior>
+      helm-ff-file-name-history-use-recentf t)
+
+(setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
+
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+(helm-mode 1)
+#+END_SRC
+
+=helm= key bindings.
+#+BEGIN_SRC emacs-lisp :noweb-ref key-bindings
+;; Helm
+(global-set-key (kbd "C-c h") 'helm-command-prefix)
+(global-unset-key (kbd "C-x c"))
+(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ;; rebind tab to run persistent action
+(define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)   ;; make TAB works in terminal
+(define-key helm-map (kbd "C-z")  'helm-select-action)              ;; list actions using C-z
+(global-set-key (kbd "C-x C-f") 'helm-find-files)                   ;; replace find-files
+(global-set-key (kbd "C-x b") 'helm-mini)                           ;; replace switch-to-buffer
+(global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
+#+END_SRC
+
+* Magit
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+;; Magit
+(package-install-if-needed 'magit))
+#+END_SRC
+
+* Yasnippet
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+(package-install-if-needed 'yasnippet)
+(package-install-if-needed 'yasnippet-bundle)
+(package-install-if-needed 'helm-c-yasnippet)
+#+END_SRC
+
+Require =yasnippet= package.
+#+BEGIN_SRC emacs-lisp :noweb-ref require
+(require 'yasnippet)
+(require 'helm-c-yasnippet)
+#+END_SRC
+
+Turn on =yas-mode= in all modes.
+#+BEGIN_SRC emacs-lisp :noweb-ref package-setup
+(setq helm-yas-space-match-any-greedy t)
+(yas-load-directory "~/.emacs.d/snippets/")
+(yas-global-mode 1)
+#+END_SRC
+
+Key binding to invoke =helm-yas-snippet=.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref key-bindings
+(global-set-key (kbd "C-c y") 'helm-yas-complete)
+#+END_SRC
+
 * Packages
 Install packages I need.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
   ;; gist
   (package-install-if-needed 'gist)
 
@@ -275,11 +312,7 @@ Install packages I need.
 * Modes
   Install modes that are not bundled with emacs.
 
-  #+BEGIN_SRC emacs-lisp
-    ;; Magit
-    (when (not (package-installed-p 'magit))
-      (package-install 'magit))
-
+  #+BEGIN_SRC emacs-lisp :noweb-ref package-install
     ;; Clojure
     (when (not (package-installed-p 'clj-mode))
       (package-install 'clj-mode))
@@ -294,16 +327,23 @@ Install packages I need.
     (when (not (package-installed-p 'graphviz-dot-mode))
       (package-install 'graphviz-dot-mode))
 
+    ;;  Rust
+    (package-install-if-needed 'rust-mode)
+
   #+END_SRC
 
-* Setting up Go
-THese bits setup programming mode for golang
-#+BEGIN_SRC emacs-lisp
-  ;; install go-mode and go-eldoc package
+* Go
+These bits setup programming mode for golang
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
   (package-install-if-needed 'go-mode)
   (package-install-if-needed 'go-eldoc)
   (package-install-if-needed 'go-autocomplete)
+#+END_SRC
 
+Hooks for Go.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref hooks
+  ;; install go-mode and go-eldoc package
   ;; enable eldoc for go
   (add-hook
    'go-mode-hook
@@ -325,10 +365,10 @@ THese bits setup programming mode for golang
 #+END_SRC
 * Git
 Set up magit mode for working with git
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
 (package-install-if-needed 'magit)
-
 #+END_SRC
+
 * Blogs
   Setup =elfeed= for reading RSS.
 
@@ -364,8 +404,14 @@ Set up magit mode for working with git
     (global-set-key (kbd "C-x w") 'elfeed)
   #+END_SRC
 
-* Useful key bindings
+* Global key bindings
 
+  My global key bindings.
+
+  | Copy region  | [C-c C-k] |
+  | Scroll up    | [M-p]     |
+  | Scroll down  | [M-n]     |
+  | Magit status | [C-c m]   |
 
   | Mode              | Key          | Description            |
   |-------------------+--------------+------------------------|
@@ -386,8 +432,121 @@ Set up magit mode for working with git
   |                   | =M-p=        | Scroll up              |
   |                   | =M-n=        | Scroll down            |
   |                   | =C-C h=      | Helm prefix            |
+
+#+begin_src emacs-lisp :noweb-ref key-bindings
+(global-set-key "\C-c\C-k" 'copy-region-as-kill)
+(global-set-key "\C-ck" 'copy-region-as-kill)
+(global-set-key "\M-n"  (lambda () (interactive) (scroll-up 1)))
+(global-set-key "\M-p"  (lambda () (interactive) (scroll-down 1)))
+(global-set-key "\C-cm"  'magit-status)
+
+(global-set-key (kbd "C-x C-f") #'helm-find-files)
+#+end_src
+
+* Theme
+Here is the code to install to =zenburn= theme and load it. Default
+cursor and mouse colors are adjusted to my personal liking.
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+(package-install-if-needed 'zenburn-theme)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :noweb-ref package-setup
+;; zenburn theme
+(load-theme 'zenburn t)
+(set-cursor-color "green")
+(set-mouse-color "green")
+#+END_SRC
+
+Make copy and paste from emacs and other programs. Under X11, the
+following block makes this work. Highlighted text can be inserted with
+=Shift-Insert= key.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref package-setup
+  (when (eq window-system 'x)
+    (setq x-select-enable-clipboard t)
+    (setq interprogram-paste-function 'x-cut-buffer-or-selection-value))
+#+END_SRC
+
 * Load-path extension
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :noweb-ref extend-load-path
 (add-to-list 'load-path "~/.emacs.d/lisp")
 
+#+END_SRC
+
+* Snippets
+** Tikz flowchart
+#+BEGIN_SRC python :exports code :tangle ~/.emacs.d/snippets/latex-mode/flowchart.yasnippet
+# -*- mode: snippet -*-
+# name: flowchart
+# key:
+# binding: "keybinding"
+# expand-env: ((some-var some-value))
+# --
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, text width=3cm, draw=black, fill=orange!30]
+\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+\begin{document}
+
+\begin{tikzpicture}[node distance=2cm]
+
+\node (start) [startstop] {Start};
+\node (in1) [io, below of=start] {Input};
+\node (pro1) [process, below of=in1] {Process 1};
+\node (dec1) [decision, below of=pro1, yshift=-0.5cm] {Decision 1};
+\node (pro2a) [process, below of=dec1, yshift=-0.5cm] {Process 2a text text text text text text text text text text};
+\node (pro2b) [process, right of=dec1, xshift=2cm] {Process 2b};
+\node (out1) [io, below of=pro2a] {Output};
+\node (stop) [startstop, below of=out1] {Stop};
+
+\draw [arrow] (start) -- (in1);
+\draw [arrow] (in1) -- (pro1);
+\draw [arrow] (pro1) -- (dec1);
+\draw [arrow] (dec1) -- node[anchor=east] {yes} (pro2a);
+\draw [arrow] (dec1) -- node[anchor=south] {no} (pro2b);
+\draw [arrow] (pro2b) |- (pro1);
+\draw [arrow] (pro2a) -- (out1);
+\draw [arrow] (out1) -- (stop);
+
+
+\end{tikzpicture}
+
+\end{document}
+#+END_SRC
+
+#+RESULTS:
+: None
+
+* Tangle .emacs
+#+BEGIN_SRC emacs-lisp :tangle ~/.emacs :noweb yes
+;; Extend load-path
+<<extend-load-path>>
+
+;; Common tweaks
+<<common-tweaks>>
+
+;; Package installation
+<<package-install>>
+
+; Requires
+<<require>>
+
+;; Key bindings
+<<key-bindings>>
+
+;; Hooks
+<<hooks>>
+
+;; Package setup
+<<package-setup>>
+
+;; Utility functions
+<<util-fn>>
 #+END_SRC
