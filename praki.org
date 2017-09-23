@@ -5,6 +5,8 @@
 (org-babel-load-file "~/stuff/dot-emacs/praki.org")
 #+END_SRC
 
+This file can also be tangled with =C-c C-v t= generating a =~/.emacs= file.
+
 * Installing emacs
 The best way to install emacs is by compiling it yourself. The
 following commands clone emacs repo and build it on my Ubuntu system.
@@ -57,7 +59,7 @@ Tweak emacs behavior to suit my taste better. No menu and toolbar. No
 tabs. No trailing whitespace.
 
 #+begin_src emacs-lisp :noweb-ref common-tweaks
-  (setq debug-on-error t)
+  (setq debug-on-error nil)
   (setq inhibit-startup-message t)    ;; no splash screen
   (menu-bar-mode 0)
   (tool-bar-mode 0)
@@ -115,6 +117,10 @@ Turn on spell checking in all modes.
 
 To check spelling in program comments, we need to enable
 =flyspell-prog-mode=.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref require
+(require 'flyspell)
+#+END_SRC
 
 #+BEGIN_SRC emacs-lisp :noweb-ref hooks
   (add-hook 'org-mode-hook
@@ -270,7 +276,7 @@ Configure =helm= options.
 * Magit
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
 ;; Magit
-(package-install-if-needed 'magit))
+(package-install-if-needed 'magit)
 #+END_SRC
 
 * Yasnippet
@@ -289,7 +295,7 @@ Require =yasnippet= package.
 Turn on =yas-mode= in all modes.
 #+BEGIN_SRC emacs-lisp :noweb-ref package-setup
 (setq helm-yas-space-match-any-greedy t)
-(yas-load-directory "~/.emacs.d/snippets/")
+(add-to-list 'load-path "~/.emacs.d/snippets/")
 (yas-global-mode 1)
 #+END_SRC
 
@@ -526,27 +532,12 @@ following block makes this work. Highlighted text can be inserted with
 
 * Tangle .emacs
 #+BEGIN_SRC emacs-lisp :tangle ~/.emacs :noweb yes
-;; Extend load-path
 <<extend-load-path>>
-
-;; Common tweaks
 <<common-tweaks>>
-
-;; Package installation
 <<package-install>>
-
-; Requires
 <<require>>
-
-;; Key bindings
 <<key-bindings>>
-
-;; Hooks
 <<hooks>>
-
-;; Package setup
 <<package-setup>>
-
-;; Utility functions
 <<util-fn>>
 #+END_SRC
