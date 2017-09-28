@@ -167,10 +167,14 @@ Customize =org-structure-template-alist=
 
 #+end_src
 
-** Turn off code evaluation confirmation for dot
+
+** Turn off code evaluation confirmation for some languages
 #+begin_src emacs-lisp
   (defun my-org-confirm-babel-evaluate (lang body)
-    (not (string= lang "dot")))
+    (not (or
+          (string= lang "emacs-lisp")
+          (string= lang "elisp")
+          (string= lang "dot"))))
   (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 #+end_src
 
@@ -211,6 +215,11 @@ Tell org-mode to skip inserting its default CSS and link to article.css
 ** Workaround for tangle performance issue
 #+BEGIN_SRC emacs-lisp
 (setf org-babel-use-quick-and-dirty-noweb-expansion t)
+#+END_SRC
+
+** after-file-hook function to evaluate source code in org-files
+#+BEGIN_SRC elisp
+(defun eval-org-buffer () (org-babel-execute-buffer))
 #+END_SRC
 
 * Helm setup
@@ -527,8 +536,6 @@ following block makes this work. Highlighted text can be inserted with
 \end{document}
 #+END_SRC
 
-#+RESULTS:
-: None
 
 * Tangle .emacs
 #+BEGIN_SRC emacs-lisp :tangle ~/.emacs :noweb yes
