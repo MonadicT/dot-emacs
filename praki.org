@@ -1,6 +1,6 @@
 * How to use this file
 =git clone= this repo. Create =~/.emacs.d/init.el= with the following and load it.
-#+BEGIN_SRC exmaple
+#+BEGIN_SRC exmaple :eval no
 (require 'org)
 (org-babel-load-file "~/stuff/dot-emacs/praki.org")
 #+END_SRC
@@ -11,7 +11,7 @@ This file can also be tangled with =C-c C-v t= generating a =~/.emacs= file.
 The best way to install emacs is by compiling it yourself. The
 following commands clone emacs repo and build it on my Ubuntu system.
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC shell :eval no
 git clone git://git.savannah.gnu.org/emacs.git
 git checkout emacs-25.0.91
 ./autogen.sh
@@ -25,7 +25,7 @@ in sync. The best way to manage this is to build org-mode from
 source. You must know the right version of org-mode that works with
 emacs and proceed from there.
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC shell :eval no
 git clone git://orgmode.org/org-mode.git
 make
 sudo make install
@@ -42,7 +42,6 @@ sudo make install
 
 Here is a convenience function to install packages conditionally.
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
-
   (defun package-install-if-needed (pkg)
     (when (not (package-installed-p pkg))
       (package-install pkg)))
@@ -59,14 +58,14 @@ Tweak emacs behavior to suit my taste better. No menu and toolbar. No
 tabs. No trailing whitespace.
 
 #+begin_src emacs-lisp :noweb-ref common-tweaks
-  (setq debug-on-error nil)
+  (setq debug-on-error t)
   (setq inhibit-startup-message t)    ;; no splash screen
   (menu-bar-mode 0)
   (tool-bar-mode 0)
   (fset 'yes-or-no-p 'y-or-n-p)       ;; replace yes-no with y-n
   (auto-fill-mode -1)                 ;; turn off auto-fill-mode
   (column-number-mode 1)              ;; display column number in mode line
-  (desktop-save-mode 1)               ;; enable desktop save
+;;  (desktop-save-mode 1)               ;; enable desktop save
   (setq ls-lisp-dirs-first t)         ;; display directories first in dir-mode
   (setq-default indent-tabs-mode nil) ;; indent with spaces
   (setq-default
@@ -89,6 +88,7 @@ tabs. No trailing whitespace.
     (delete-region start end)
     (insert sorted-str)))
 #+end_src
+
 ** Indent entire buffer
    Indents buffer contents without having to select it first.
    #+begin_src emacs-lisp :noweb-ref util-fn
@@ -130,7 +130,6 @@ To check spelling in program comments, we need to enable
   (add-hook 'prog-mode-hook
             (lambda ()
               (flyspell-prog-mode)
-                                          ; ...
               ))
 #+END_SRC
 
@@ -138,6 +137,7 @@ Key binding.
 #+BEGIN_SRC emacs-lisp :noweb-ref key-bindings
 (define-key flyspell-mode-map (kbd "C-;") 'helm-flyspell-correct)
 #+END_SRC
+
 
 * Org mode
 ** org-mode tweaks for code blocks
@@ -167,7 +167,6 @@ Customize =org-structure-template-alist=
 
 #+end_src
 
-
 ** Turn off code evaluation confirmation for some languages
 #+begin_src emacs-lisp
   (defun my-org-confirm-babel-evaluate (lang body)
@@ -194,8 +193,8 @@ Customize =org-structure-template-alist=
       'org-mode-hook
       '(lambda ()
          (define-key org-mode-map "\C-c\C-v/" 'show-tangle-output-filename)))
-
 #+end_src
+
 ** Remove org-mode postamble from html-export
 
 #+begin_src emacs-lisp
@@ -212,13 +211,14 @@ Tell org-mode to skip inserting its default CSS and link to article.css
        "<link rel=\"stylesheet\" type=\"text/css\" href=\"~/projects/gwave-site/articles/article2.css\" />")
 (setq org-image-actual-width nil)
 #+END_SRC
+
 ** Workaround for tangle performance issue
 #+BEGIN_SRC emacs-lisp
 (setf org-babel-use-quick-and-dirty-noweb-expansion t)
 #+END_SRC
 
 ** after-file-hook function to evaluate source code in org-files
-#+BEGIN_SRC elisp
+#+BEGIN_SRC elisp :noweb-ref hooks
 (defun eval-org-buffer () (org-babel-execute-buffer))
 #+END_SRC
 
@@ -289,14 +289,18 @@ Configure =helm= options.
 #+END_SRC
 
 * Yasnippet
+=yasnippet= along with =helm= is used for templates.
+
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
 (package-install-if-needed 'yasnippet)
 (package-install-if-needed 'yasnippet-bundle)
+(package-install-if-needed 'yasnippet-snippets)
 (package-install-if-needed 'helm-c-yasnippet)
 #+END_SRC
 
 Require =yasnippet= package.
-#+BEGIN_SRC emacs-lisp :noweb-ref require
+#+BEGIN_SRC emacs-lisp :noweb-ref require :results silent
+(add-to-list 'load-path "~/.emacs.d/snippets/")
 (require 'yasnippet)
 (require 'helm-c-yasnippet)
 #+END_SRC
@@ -304,7 +308,9 @@ Require =yasnippet= package.
 Turn on =yas-mode= in all modes.
 #+BEGIN_SRC emacs-lisp :noweb-ref package-setup
 (setq helm-yas-space-match-any-greedy t)
-(add-to-list 'load-path "~/.emacs.d/snippets/")
+;;(setq yas/root-directory "~/.emacs.d/snippets")
+;;        (yas/load-directory yas/root-directory)
+(customize-set-variable 'yas-alias-to-yas/prefix-p nil)
 (yas-global-mode 1)
 #+END_SRC
 
@@ -467,6 +473,7 @@ cursor and mouse colors are adjusted to my personal liking.
 
 #+BEGIN_SRC emacs-lisp :noweb-ref package-setup
 ;; zenburn theme
+(message "loading theme")
 (load-theme 'zenburn t)
 (set-cursor-color "green")
 (set-mouse-color "green")
@@ -490,7 +497,7 @@ following block makes this work. Highlighted text can be inserted with
 
 * Snippets
 ** Tikz flowchart
-#+BEGIN_SRC python :exports code :tangle ~/.emacs.d/snippets/latex-mode/flowchart.yasnippet
+#+BEGIN_SRC python :exports code :tangle ~/.emacs.d/snippets/latex-mode/flowchart.yasnippet :results silent
 # -*- mode: snippet -*-
 # name: flowchart
 # key:
@@ -531,11 +538,10 @@ following block makes this work. Highlighted text can be inserted with
 \draw [arrow] (out1) -- (stop);
 
 
-\end{tikzpicture}
+q\end{tikzpicture}
 
 \end{document}
 #+END_SRC
-
 
 * Tangle .emacs
 #+BEGIN_SRC emacs-lisp :tangle ~/.emacs :noweb yes
