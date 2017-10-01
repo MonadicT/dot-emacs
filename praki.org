@@ -496,6 +496,12 @@ following block makes this work. Highlighted text can be inserted with
 #+END_SRC
 
 * Snippets
+Create directories in =~/.emacs.d/snippets=.
+#+begin_src elisp :noweb-ref util-fn :results silent
+(make-directory "~/.emacs.d/snippets/org-mode" t)
+(make-directory "~/.emacs.d/snippets/latex-mode" t)
+#+end_src
+
 ** Tikz flowchart
 #+BEGIN_SRC python :exports code :tangle ~/.emacs.d/snippets/latex-mode/flowchart.yasnippet :results silent
 # -*- mode: snippet -*-
