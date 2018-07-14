@@ -2,7 +2,7 @@
 =git clone= this repo. Create =~/.emacs.d/init.el= with the following and load it.
 #+BEGIN_SRC exmaple :eval no
 (require 'org)
-(org-babel-load-file "~/stuff/dot-emacs/praki.org")
+(org-babel-load-file "~/dot-emacs/praki.org")
 #+END_SRC
 
 This file can also be tangled with =C-c C-v t= generating a =~/.emacs= file.
@@ -31,215 +31,40 @@ make
 sudo make install
 #+END_SRC
 
-* Package reps
-#+BEGIN_SRC emacs-lisp :noweb-ref package-install
-(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-                         ("marmalade" . "https://marmalade-repo.org/packages/")
-                         ("melpa" . "https://melpa.org/packages/")))
+* Customize emacs
+Basic tweaks for emacs.
 
-(package-initialize)
+#+BEGIN_SRC emacs-lisp :noweb-ref emacs-setup
+(setq inhibit-splash-screen t)
+(menu-bar-mode nil)
+(tool-bar-mode -1)
+(toggle-scroll-bar -1)
+(fset 'yes-or-no-p 'y-or-n-p)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(setq show-trailing-whitespace t)
+(setq whitespace-style '(space-mark))
+(setq ispell-program-name "/usr/local/bin/aspell")
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
+(show-paren-mode 1)
+(display-time-mode 1)
+(exec-path-from-shell-initialize)
 #+END_SRC
 
-Here is a convenience function to install packages conditionally.
+* Package repos
+Packages in different repos are not all in sync. =helm= and =magit-mode=
+installation wasn't straightforward.
+
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
-  (defun package-install-if-needed (pkg)
-    (when (not (package-installed-p pkg))
+  (defun package-install-if-needed(pkg)
+    (unless (package-installed-p pkg)
       (package-install pkg)))
 
-#+END_SRC
-
-* Emacs customization
-Before we can customize, we need to know the environment emacs is
-running on. =display-graphic-p= informs us if we are running in a
-graphical environment. =window-system= is either =x= or =w32=
-depending on the OS environment.
-
-Tweak emacs behavior to suit my taste better. No menu and toolbar. No
-tabs. No trailing whitespace.
-
-#+begin_src emacs-lisp :noweb-ref common-tweaks
-  (setq debug-on-error t)
-  (setq inhibit-startup-message t)    ;; no splash screen
-  (menu-bar-mode 0)
-  (tool-bar-mode 0)
-  (fset 'yes-or-no-p 'y-or-n-p)       ;; replace yes-no with y-n
-  (auto-fill-mode -1)                 ;; turn off auto-fill-mode
-  (column-number-mode 1)              ;; display column number in mode line
-;;  (desktop-save-mode 1)               ;; enable desktop save
-  (setq ls-lisp-dirs-first t)         ;; display directories first in dir-mode
-  (setq-default indent-tabs-mode nil) ;; indent with spaces
-  (setq-default
-   show-trailing-whitespace t)        ;; visual indication of trailing space
-  (setq-default tab-width 4)          ;; tab width be 4 spaces
-  (add-hook 'before-save-hook         ;; delete trailing space
-            'delete-trailing-whitespace)
-  (set-frame-font "DejaVu Sans Mono-11")
-#+end_src
-
-* Utility functions
-** sort-words
-#+begin_src emacs-lisp :noweb-ref util-fn
-(defun sort-words(start end)
-  (interactive "r")
-  (let* ((str (buffer-substring-no-properties start end))
-         (words (split-string str))
-         (sorted-words (sort words #'string<))
-         (sorted-str (mapconcat (lambda (a) a) sorted-words " ")))
-    (delete-region start end)
-    (insert sorted-str)))
-#+end_src
-
-** Indent entire buffer
-   Indents buffer contents without having to select it first.
-   #+begin_src emacs-lisp :noweb-ref util-fn
-     (defun indent-buffer ()
-       (interactive)
-       (indent-region (point-min) (point-max)))
-
-   #+end_src
-
-Bind this function to =C-M-==.
-#+BEGIN_SRC emacs-lisp :noweb-ref key-bindings
-     (global-set-key [?\C-\M-=] #'indent-buffer)
-#+END_SRC
-
-* Spell check
-Misspelled words are corrected with =M-$= or =C-.= or =C-;= keys.
-A word can be completed with =M-TAB=.
-
-Turn on spell checking in all modes.
-
-#+BEGIN_SRC emacs-lisp :noweb-ref hooks
-(add-hook 'find-file-hooks 'turn-on-flyspell)
-#+END_SRC
-
-=fly-spell= needs =aspell-en= package.
-
-To check spelling in program comments, we need to enable
-=flyspell-prog-mode=.
-
-#+BEGIN_SRC emacs-lisp :noweb-ref require
-(require 'flyspell)
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp :noweb-ref hooks
-  (add-hook 'org-mode-hook
-            (lambda()
-              (flyspell-mode 1)))
-
-  (add-hook 'prog-mode-hook
-            (lambda ()
-              (flyspell-prog-mode)
-              ))
-#+END_SRC
-
-Key binding.
-#+BEGIN_SRC emacs-lisp :noweb-ref key-bindings
-(define-key flyspell-mode-map (kbd "C-;") 'helm-flyspell-correct)
-#+END_SRC
-
-
-* Org mode
-** org-mode tweaks for code blocks
-We want fontification in org-mode. We also want to edit source blocks
-in the current window.
-
-#+begin_src emacs-lisp
-(setq org-src-fontify-natively t)
-(setq org-src-window-setup 'current-window)
-#+end_src
-
-** Define easy template extensions
-Customize =org-structure-template-alist=
-
-#+BEGIN_SRC emacs-lisp
-  (add-to-list
-   'org-structure-template-alist
-   '("C" "#+name: \n#+begin_src Closure :noweb yes\n\n#+end_src"))
-#+END_SRC
-
-** Activate languages
-#+begin_src emacs-lisp
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((python . t)
-     (dot . t)))
-
-#+end_src
-
-** Turn off code evaluation confirmation for some languages
-#+begin_src emacs-lisp
-  (defun my-org-confirm-babel-evaluate (lang body)
-    (not (or
-          (string= lang "emacs-lisp")
-          (string= lang "elisp")
-          (string= lang "dot"))))
-  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
-#+end_src
-
-** Define a function to show tangle output filename.
-
-#+begin_src emacs-lisp
-  (defun show-tangle-output-filename
-    ()
-    (interactive)
-    (save-excursion
-      (while (and (> (point) (point-min))
-                  (not (looking-at "^:tangle: \\(.*$\\)")))
-        (forward-line -1))
-      (message "%s" (match-string 1))
-      (match-string 1)))
-  (add-hook
-      'org-mode-hook
-      '(lambda ()
-         (define-key org-mode-map "\C-c\C-v/" 'show-tangle-output-filename)))
-#+end_src
-
-** Remove org-mode postamble from html-export
-
-#+begin_src emacs-lisp
-(setq org-export-html-postamble nil)
-#+end_src
-
-** Custom CSS for html export
-Tell org-mode to skip inserting its default CSS and link to article.css
-
-#+BEGIN_SRC emacs-lisp
-(setq org-export-html-style-include-scripts nil
-       org-export-html-style-include-default nil)
-(setq org-export-html-style
-       "<link rel=\"stylesheet\" type=\"text/css\" href=\"~/projects/gwave-site/articles/article2.css\" />")
-(setq org-image-actual-width nil)
-#+END_SRC
-
-** Workaround for tangle performance issue
-#+BEGIN_SRC emacs-lisp
-(setf org-babel-use-quick-and-dirty-noweb-expansion t)
-#+END_SRC
-
-** after-file-hook function to evaluate source code in org-files
-#+BEGIN_SRC elisp :noweb-ref hooks
-(defun eval-org-buffer () (org-babel-execute-buffer))
-#+END_SRC
-
-* Helm setup
-Use *helm* to manage opening files and such. This configuration is
-from helm's documentation. When using helm to complete, the following keys are handy.
-
-| =C-n=    | Move to next entry        |
-| =C-p=    | Move to previous entry    |
-| =M-v=    | Move to previous page     |
-| =C-v=    | Move to next page         |
-| =M-<=    | Move to top               |
-| =M->=    | Move to bottom            |
-| =C-w=    | Yank word at point        |
-| =M-n=    | Yank symbol at point      |
-| =C-jC-j= | View content of selection |
-| /        | Root directory            |
-| ~/       | Home directory            |
-
-#+BEGIN_SRC emacs-lisp :noweb-ref package-install
-  (package-install-if-needed 'helm)
+  (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                           ("marmalade" . "https://marmalade-repo.org/packages/")
+                           ("melpa" . "https://melpa.org/packages/")))
+  (package-initialize)
+  (package-install 'helm)
   (package-install-if-needed 'helm-google)
   (package-install-if-needed 'helm-dash)
   (package-install-if-needed 'helm-flyspell)
@@ -282,6 +107,11 @@ Configure =helm= options.
 (global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
 #+END_SRC
 
+* Customize org-mode htmlize
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+(setq       org-html-htmlize-output-type 'css)
+(setq-default org-html-head "<link rel=\"stylesheet\" href=\"org-mode-style.css/>")
+#+END_SRC
 * Magit
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
 ;; Magit
@@ -292,17 +122,17 @@ Configure =helm= options.
 =yasnippet= along with =helm= is used for templates.
 
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
-(package-install-if-needed 'yasnippet)
-(package-install-if-needed 'yasnippet-bundle)
-(package-install-if-needed 'yasnippet-snippets)
-(package-install-if-needed 'helm-c-yasnippet)
+;;(package-install-if-needed 'yasnippet)
+;;(package-install-if-needed 'yasnippet-bundle)
+;;(package-install-if-needed 'yasnippet-snippets)
+;;(package-install-if-needed 'helm-c-yasnippet)
 #+END_SRC
 
 Require =yasnippet= package.
 #+BEGIN_SRC emacs-lisp :noweb-ref require :results silent
-(add-to-list 'load-path "~/.emacs.d/snippets/")
-(require 'yasnippet)
-(require 'helm-c-yasnippet)
+;;(add-to-list 'load-path "~/.emacs.d/snippets/")
+;;(require 'yasnippet)
+;;(require 'helm-c-yasnippet)
 #+END_SRC
 
 Turn on =yas-mode= in all modes.
@@ -351,8 +181,17 @@ Install packages I need.
     ;;  Rust
     (package-install-if-needed 'rust-mode)
 
+    ;;  ReasonML
+    (package-install-if-needed 'reason-mode)
+
   #+END_SRC
 
+* Java mode
+#+BEGIN_SRC emacs-lisp :noweb-ref package-setup
+  (add-hook 'java-mode-hook 
+	    (lambda ()
+	      (setq c-basic-offset 4)))
+#+END_SRC
 * Go
 These bits setup programming mode for golang
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
@@ -374,10 +213,23 @@ Hooks for Go.
      (define-key (current-local-map) "\C-c\C-c" 'compile)
      ;; enable eldoc
      (go-eldoc-setup)
-     ;; run gofmt before saving go source
      (setq gofmt-command "goimports")
      ;; Key binding to jum to defn
      (local-set-key (kbd "M-.") 'godef-jump)))
+
+  (defun my-go-mode-hook ()
+                                          ; Call Gofmt before saving
+    (add-hook 'before-save-hook 'gofmt-before-save)
+                                          ; Customize compile command to run go build
+    (if (not (string-match "go" compile-command))
+        (set (make-local-variable 'compile-command)
+             "go build -v && go test -v && go vet"))
+                                          ; Godef jump key binding
+    (setq tab-width 2 indent-tabs-mode nil)
+    (local-set-key (kbd "M-.") 'godef-jump)
+    (local-set-key (kbd "M-*") 'pop-tag-mark))
+
+  (add-hook 'go-mode-hook 'my-go-mode-hook)
 
   ;; setup autocompletion
   (require 'auto-complete-config)
@@ -390,6 +242,96 @@ Set up magit mode for working with git
 (package-install-if-needed 'magit)
 #+END_SRC
 
+* Typescript
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+  (package-install-if-needed 'typescript-mode)
+#+END_SRC
+
+Hooks for Typescript.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref hooks
+(defun my-typescript-mode-hook ()
+  (setq indent-tabs-mode nil)
+  (let ((my-tab-width 2))
+    (setq tab-width my-tab-width)
+    (setq c-basic-indent my-tab-width)
+    (setq c-basic-offset my-tab-width)
+    (set (make-local-variable 'tab-stop-list)
+         (number-sequence my-tab-width 200 my-tab-width))))
+(add-hook 'typescript-mode-hook 'my-typescript-mode-hook)
+#+END_SRC
+
+* Purescript
+#+BEGIN_SRC 
+(require 'repl-toggle)
+(require 'psci)
+(add-to-list 'rtog/mode-repl-alist '(purescript-mode . psci))
+(add-hook 'purescript-mode-hook 'inferior-psci-mode)
+;;(setq load-path (append load-path "/Users/praki/.npm-packages/bin"))
+#+END_SRC
+* Reason
+#+BEGIN_SRC elisp :noweb-ref package-setup
+(package-install-if-needed 'utop)
+
+(require 'reason-mode)
+(require 'merlin)
+
+;; Use the opam installed utop
+(setq utop-command "opam config exec -- utop -emacs")
+
+(defun shell-cmd (cmd)
+  "Returns the stdout output of a shell command or nil if the command returned
+   an error"
+  (car (ignore-errors (apply 'process-lines (split-string cmd)))))
+
+(let* ((refmt-bin (or (shell-cmd "refmt ----where")
+                      (shell-cmd "which refmt")))
+       (merlin-bin (or (shell-cmd "ocamlmerlin ----where")
+                       (shell-cmd "which ocamlmerlin")))
+       (merlin-base-dir (when merlin-bin
+                          (replace-regexp-in-string "bin/ocamlmerlin$" "" merlin-bin))))
+  ;; Add npm merlin.el to the emacs load path and tell emacs where to find ocamlmerlin
+  (when merlin-bin
+    (add-to-list 'load-path (concat merlin-base-dir "share/emacs/site-lisp/"))
+    (setq merlin-command merlin-bin))
+
+  (when refmt-bin
+    (setq refmt-command refmt-bin)))
+
+(add-hook 'reason-mode-hook (lambda ()
+                              (add-hook 'before-save-hook 'refmt-before-save)
+                              (merlin-mode)))
+(autoload 'utop-minor-mode "utop" "Minor mode for utop" t)
+(add-hook 'reason-mode-hook 'utop-minor-mode)
+(add-hook 'reason-mode-hook (lambda ()
+(add-hook 'before-save-hook 'refmt-before-save)))
+(setq merlin-ac-setup t)
+#+END_SRC
+* Parenthesis matching
+#+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
+(global-set-key "%" 'match-paren)
+          
+          (defun match-paren (arg)
+            "Go to the matching paren if on a paren; otherwise insert %."
+            (interactive "p")
+            (cond ((looking-at "\\s(") (forward-list 1) (backward-char 1))
+                  ((looking-at "\\s)") (forward-char 1) (backward-list 1))
+                  (t (self-insert-command (or arg 1)))))
+
+#+END_SRC
+* Dedicating windows
+#+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
+(defun toggle-window-dedicated ()
+  "Toggle whether the current active window is dedicated or not"
+  (interactive)
+  (message 
+   (if (let (window (get-buffer-window (current-buffer)))
+	 (set-window-dedicated-p window 
+				 (not (window-dedicated-p window))))
+       "Window '%s' is dedicated"
+     "Window '%s' is normal")
+   (current-buffer)))
+#+END_SRC
 * Blogs
   Setup =elfeed= for reading RSS.
 
