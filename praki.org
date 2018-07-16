@@ -431,6 +431,37 @@ following block makes this work. Highlighted text can be inserted with
     (setq interprogram-paste-function 'x-cut-buffer-or-selection-value))
 #+END_SRC
 
+* Popup help
+This displays a popup window with some helpful text and bound to a
+global key =ñC-x p=.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref util-fns
+  (defun quick-help()
+    (interactive)
+    (popup-tip 
+     "
+  Rectangle                 Position                      File
+  ---------                 --------                      ----------
+  Clear     - C-x r c       Save     - C-x r <SPC> /r/    Store    - (
+  Delete    - C-x r d       Jump     - C-x r j /r/
+  Kill      - C-x r k                                     Macro
+  Insert    - C-x r o       Text                          -----------
+  Register  - C-x r r /r/   ---------                     Save     - C-x C-k x /r/
+  Replace   - C-x r t       Copy     - C-x r s /r/
+  Yank      - C-x r y       Insert   - C-x r i /r/        Bookmarks
+  Number    - C-x r N       Append   - C-x r + /r/        -----------
+  Copy/kill - C-x r M-w                                   Set      - C-x r m
+                                                          Jump     - C-x r b
+                                                          List     - C-x r l
+    "
+     :point (point)
+     :around t
+     :height 45
+     :scroll-bar t
+     :margin t))
+
+  (global-set-key (kbd "C-x p") #'quick-help)
+#+END_SRC
 * Load-path extension
 #+BEGIN_SRC emacs-lisp :noweb-ref extend-load-path
 (add-to-list 'load-path "~/.emacs.d/lisp")
