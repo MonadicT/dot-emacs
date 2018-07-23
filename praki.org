@@ -49,6 +49,7 @@ Basic tweaks for emacs.
 (show-paren-mode 1)
 (display-time-mode 1)
 (exec-path-from-shell-initialize)
+(setq backup-directory-alist '((".*" . "~/.Trash")))
 #+END_SRC
 
 * Package repos
