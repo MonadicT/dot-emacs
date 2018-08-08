@@ -36,8 +36,9 @@ Basic tweaks for emacs.
 
 #+BEGIN_SRC emacs-lisp :noweb-ref emacs-setup
 (setq inhibit-splash-screen t)
-(menu-bar-mode nil)
+(menu-bar-mode -1)
 (tool-bar-mode -1)
+(scroll-bar-mode -1)
 (toggle-scroll-bar -1)
 (fset 'yes-or-no-p 'y-or-n-p)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
@@ -436,7 +437,7 @@ following block makes this work. Highlighted text can be inserted with
 This displays a popup window with some helpful text and bound to a
 global key =ñC-x p=.
 
-#+BEGIN_SRC emacs-lisp :noweb-ref util-fns
+#+BEGIN_SRC emacs-lisp :noweb-ref util-fn
   (defun quick-help()
     (interactive)
     (popup-tip 
@@ -523,6 +524,54 @@ q\end{tikzpicture}
 \end{document}
 #+END_SRC
 
+* Preload registers
+#+BEGIN_SRC elisp :noweb-ref util-fn :eval no
+(set-register ?c "-- Copyright © 2018 Praki Prakash, All rights reserved.")
+
+(set-register ?h "-- Copyright © 2018 Praki Prakash, All rights reserved.
+
+{-# EmptyCase #-}
+{-# FlexibleContexts #-}
+{-# FlexibleInstances #-}
+{-# InstanceSigs #-}
+{-# MultiParamTypeClasses #-}
+
+{-# LambdaCase #-}
+{-# MultiWayIf #-}
+{-# NamedFieldPuns #-}
+{-# TupleSections #-}
+
+{-# DeriveFoldable #-}
+{-# DeriveFunctor #-}
+{-# DeriveGeneric #-}
+{-# DeriveLift #-}
+{-# DeriveTraversable #-}
+{-# DerivingStrategies #-}
+{-# GeneralizedNewtypeDeriving #-}
+{-# StandaloneDeriving #-}
+
+{-# BangPatterns #-}
+{-# KindSignatures #-}
+{-# TypeOperators #-}
+
+{-# LANGUAGE OverloadedStrings #-}
+
+{-# ScopedTypeVariables #-}
+{-# TypeApplications #-}
+
+{-# LANGUAGE BangPatterns #-}
+{-# FlexibleContexts #-}
+{-# FlexibleInstances #-}
+
+module Foo() where\n")
+
+(set-register ?o "#+TITLE: FIXME
+#+OPTIONS:     num:nil toc:t")
+
+(set-register ?e "#+BEGIN_SRC elisp :eval no :noweb-ref what\n\n\#+END_SRC")
+
+(set-register ?n '(file . "~/projects/notes.org"))
+#+END_SRC
 * Tangle .emacs
 #+BEGIN_SRC emacs-lisp :tangle ~/.emacs :noweb yes
 <<extend-load-path>>
@@ -534,3 +583,6 @@ q\end{tikzpicture}
 <<package-setup>>
 <<util-fn>>
 #+END_SRC
+
+
+
