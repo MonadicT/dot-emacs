@@ -5,54 +5,6 @@
 (org-babel-load-file "~/dot-emacs/praki.org")
 #+END_SRC
 
-This file can also be tangled with =C-c C-v t= generating a =~/.emacs= file.
-
-* Installing emacs
-The best way to install emacs is by compiling it yourself. The
-following commands clone emacs repo and build it on my Ubuntu system.
-
-#+BEGIN_SRC shell :eval no
-git clone git://git.savannah.gnu.org/emacs.git
-git checkout emacs-25.0.91
-./autogen.sh
-./configure
-make
-sudo make install
-#+END_SRC
-
-org-mode is pretty essential. Sadly, emacs and org-mode are not always
-in sync. The best way to manage this is to build org-mode from
-source. You must know the right version of org-mode that works with
-emacs and proceed from there.
-
-#+BEGIN_SRC shell :eval no
-git clone git://orgmode.org/org-mode.git
-make
-sudo make install
-#+END_SRC
-
-* Customize emacs
-Basic tweaks for emacs.
-
-#+BEGIN_SRC emacs-lisp :noweb-ref emacs-setup
-(setq inhibit-splash-screen t)
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(toggle-scroll-bar -1)
-(fset 'yes-or-no-p 'y-or-n-p)
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-(setq show-trailing-whitespace t)
-(setq whitespace-style '(space-mark))
-(setq ispell-program-name "/usr/local/bin/aspell")
-(add-hook 'text-mode-hook 'flyspell-mode)
-(add-hook 'prog-mode-hook 'flyspell-prog-mode)
-(show-paren-mode 1)
-(display-time-mode 1)
-(exec-path-from-shell-initialize)
-(setq backup-directory-alist '((".*" . "~/.Trash")))
-#+END_SRC
-
 * Package repos
 Packages in different repos are not all in sync. =helm= and =magit-mode=
 installation wasn't straightforward.
@@ -66,11 +18,31 @@ installation wasn't straightforward.
                            ("marmalade" . "https://marmalade-repo.org/packages/")
                            ("melpa" . "https://melpa.org/packages/")))
   (package-initialize)
-  (package-install 'helm)
+  (package-install-if-needed 'helm)
   (package-install-if-needed 'helm-google)
   (package-install-if-needed 'helm-dash)
   (package-install-if-needed 'helm-flyspell)
   (package-install-if-needed 'w3m)
+#+END_SRC
+
+Basic tweaks
+#+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
+(require 'tool-bar)
+(require 'scroll-bar)
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(toggle-scroll-bar -1)
+(fset 'yes-or-no-p 'y-or-n-p)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(setq show-trailing-whitespace t)
+(setq whitespace-style '(space-mark))
+(setq ispell-program-name "/usr/local/bin/aspell")
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
+(show-paren-mode 1)
+(display-time-mode 1)
+(setq backup-directory-alist '((".*" . "~/.Trash")))
 #+END_SRC
 
 Require helm packages.
@@ -109,7 +81,24 @@ Configure =helm= options.
 (global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
 #+END_SRC
 
-* Customize org-mode htmlize
+* Customize org-mode
+** Babel execute functions
+#+BEGIN_SRC elisp :noweb-ref common-tweaks
+(require 'ob-python)
+(require 'ob-haskell)
+#+END_SRC
+
+** Evaluation prompt
+#+BEGIN_SRC elisp :noweb-ref common-tweaks
+(defun my-org-confirm-babel-evaluate (lang body)
+  (not (or (string= lang "python")
+	   (string= lang "haskell")
+	   (string= lang "elisp"))))
+
+(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+#+END_SRC
+
+** Htmlize
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
 (setq       org-html-htmlize-output-type 'css)
 (setq-default org-html-head "<link rel=\"stylesheet\" href=\"org-mode-style.css/>")
@@ -190,7 +179,7 @@ Install packages I need.
 
 * Java mode
 #+BEGIN_SRC emacs-lisp :noweb-ref package-setup
-  (add-hook 'java-mode-hook 
+  (add-hook 'java-mode-hook
 	    (lambda ()
 	      (setq c-basic-offset 4)))
 #+END_SRC
@@ -264,7 +253,7 @@ Hooks for Typescript.
 #+END_SRC
 
 * Purescript
-#+BEGIN_SRC 
+#+BEGIN_SRC
 (require 'repl-toggle)
 (require 'psci)
 (add-to-list 'rtog/mode-repl-alist '(purescript-mode . psci))
@@ -309,10 +298,43 @@ Hooks for Typescript.
 (add-hook 'before-save-hook 'refmt-before-save)))
 (setq merlin-ac-setup t)
 #+END_SRC
+* Elixir mode
+#+BEGIN_SRC elisp :noweb-ref package-setup
+  (package-install-if-needed 'elixir-mode)
+  (package-install-if-needed 'alchemist)
+
+  (defun format-elixir-code ()
+    (elixir-format))
+
+  (add-hook 'elixir-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook
+                        'format-elixir-code
+                        nil
+                        t)))
+
+  (setq alchemist-iex-program-name "/usr/local/bin/iex") ;; default: iex
+  (setq alchemist-execute-command "/usr/local/bin/elixir") ;; default: elixir
+  (setq alchemist-compile-command "/usr/local/bin/elixirc") ;; default: elixirc
+  (setq alchemist-test-status-modeline nil)
+  (setq alchemist-key-command-prefix (kbd "C-c a")) ;; default: (kbd "C-c a")
+  (setq alchemist-test-mode-highlight-tests nil) ;; default t
+  (setq alchemist-test-ask-about-save nil)
+  (setq alchemist-test-status-modeline nil)
+  (setq alchemist-test-display-compilation-output t)
+  (setq alchemist-test-truncate-lines nil) ;; default t
+  (setq alchemist-hooks-test-on-save t)
+  (setq alchemist-hooks-compile-on-save t)
+#+END_SRC
+( Elm mode
+#+BEGIN_SRC elisp :noweb-ref package-setup
+(setq elm-format-on-save t)
+(setq elm-tags-on-save t)
+#+END_SRC
 * Parenthesis matching
 #+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
 (global-set-key "%" 'match-paren)
-          
+
           (defun match-paren (arg)
             "Go to the matching paren if on a paren; otherwise insert %."
             (interactive "p")
@@ -326,9 +348,9 @@ Hooks for Typescript.
 (defun toggle-window-dedicated ()
   "Toggle whether the current active window is dedicated or not"
   (interactive)
-  (message 
+  (message
    (if (let (window (get-buffer-window (current-buffer)))
-	 (set-window-dedicated-p window 
+	 (set-window-dedicated-p window
 				 (not (window-dedicated-p window))))
        "Window '%s' is dedicated"
      "Window '%s' is normal")
@@ -440,7 +462,7 @@ global key =ñC-x p=.
 #+BEGIN_SRC emacs-lisp :noweb-ref util-fn
   (defun quick-help()
     (interactive)
-    (popup-tip 
+    (popup-tip
      "
   Rectangle                 Position                      File
   ---------                 --------                      ----------
@@ -526,63 +548,61 @@ q\end{tikzpicture}
 
 * Preload registers
 #+BEGIN_SRC elisp :noweb-ref util-fn :eval no
-(set-register ?c "-- Copyright © 2018 Praki Prakash, All rights reserved.")
+(set-register ?a "#+BEGIN_SRC elisp :eval no :noweb-ref funcs\n\n\#+END_SRC")
+(set-register ?b "#+BEGIN_SRC elisp :eval no :noweb yes :results none :exports code :tangle foo.bar\n\n\#+END_SRC")
 
-(set-register ?h "-- Copyright © 2018 Praki Prakash, All rights reserved.
+(set-register ?c "-- Copyright © 2018, Praki Prakash, All rights reserved.")
 
-{-# EmptyCase #-}
-{-# FlexibleContexts #-}
-{-# FlexibleInstances #-}
-{-# InstanceSigs #-}
-{-# MultiParamTypeClasses #-}
+(set-register ?h "-- Copyright © 2018, Praki Prakash, All rights reserved.
 
-{-# LambdaCase #-}
-{-# MultiWayIf #-}
-{-# NamedFieldPuns #-}
-{-# TupleSections #-}
+{-# LANGUAGE EmptyCase #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
-{-# DeriveFoldable #-}
-{-# DeriveFunctor #-}
-{-# DeriveGeneric #-}
-{-# DeriveLift #-}
-{-# DeriveTraversable #-}
-{-# DerivingStrategies #-}
-{-# GeneralizedNewtypeDeriving #-}
-{-# StandaloneDeriving #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TupleSections #-}
 
-{-# BangPatterns #-}
-{-# KindSignatures #-}
-{-# TypeOperators #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving #-}
+
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE TypeOperators #-}
 
 {-# LANGUAGE OverloadedStrings #-}
 
-{-# ScopedTypeVariables #-}
-{-# TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 {-# LANGUAGE BangPatterns #-}
-{-# FlexibleContexts #-}
-{-# FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Foo() where\n")
 
 (set-register ?o "#+TITLE: FIXME
 #+OPTIONS:     num:nil toc:t")
 
-(set-register ?e "#+BEGIN_SRC elisp :eval no :noweb-ref what\n\n\#+END_SRC")
-
-(set-register ?n '(file . "~/projects/notes.org"))
+(set-register ?n '(file . "~/projects/notes/notes.org"))
 #+END_SRC
 * Tangle .emacs
 #+BEGIN_SRC emacs-lisp :tangle ~/.emacs :noweb yes
 <<extend-load-path>>
-<<common-tweaks>>
 <<package-install>>
+<<common-tweaks>>
 <<require>>
 <<key-bindings>>
 <<hooks>>
 <<package-setup>>
 <<util-fn>>
 #+END_SRC
-
-
-
