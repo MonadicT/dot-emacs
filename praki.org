@@ -15,14 +15,16 @@ installation wasn't straightforward.
       (package-install pkg)))
 
   (setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
-                           ("marmalade" . "https://marmalade-repo.org/packages/")
-                           ("melpa" . "https://melpa.org/packages/")))
+			   ("marmalade" . "https://marmalade-repo.org/packages/")
+			   ("melpa" . "https://melpa.org/packages/")))
   (package-initialize)
   (package-install-if-needed 'helm)
   (package-install-if-needed 'helm-google)
   (package-install-if-needed 'helm-dash)
   (package-install-if-needed 'helm-flyspell)
   (package-install-if-needed 'w3m)
+  (package-install-if-needed 'projectile)
+  (package-install-if-needed 'helm-projectile)
 #+END_SRC
 
 Basic tweaks
@@ -49,23 +51,33 @@ Require helm packages.
 #+BEGIN_SRC emacs-lisp :noweb-ref require
 (require 'helm)
 (require 'helm-config)
+(require 'helm-projectile)
 #+END_SRC
 
 Configure =helm= options.
 #+BEGIN_SRC emacs-lisp :noweb-ref package-setup
-(when (executable-find "curl")
-  (setq helm-google-suggest-use-curl-p t))
+  (when (executable-find "curl")
+    (setq helm-google-suggest-use-curl-p t))
 
-(setq helm-split-window-in-side-p           t                       ;; open helm buffer inside current window, not occupy whole other window
-      helm-move-to-line-cycle-in-source     t                       ;; move to end or beginning of source when reaching top or bottom of source.
-      helm-ff-search-library-in-sexp        t                       ;; search for library in `require' and `declare-function' sexp.
-      helm-scroll-amount                    8                       ;; scroll 8 lines other window using M-<next>/M-<prior>
-      helm-ff-file-name-history-use-recentf t)
+  (setq helm-split-window-in-side-p           t                       ;; open helm buffer inside current window, not occupy whole other window
+	helm-move-to-line-cycle-in-source     t                       ;; move to end or beginning of source when reaching top or bottom of source.
+	helm-ff-search-library-in-sexp        t                       ;; search for library in `require' and `declare-function' sexp.
+	helm-scroll-amount                    8                       ;; scroll 8 lines other window using M-<next>/M-<prior>
+	helm-ff-file-name-history-use-recentf t)
 
-(setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
+  (setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
 
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
-(helm-mode 1)
+  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+  (helm-mode 1)
+  (projectile-mode 1)
+
+  (global-set-key (kbd "C-x C-f") (lambda ()
+    (interactive)
+    (if (projectile-project-p)
+      (helm-projectile-find-file)
+      (helm-find-files-1 (helm-dwim-target-directory)))))
+
+
 #+END_SRC
 
 =helm= key bindings.
