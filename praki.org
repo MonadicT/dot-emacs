@@ -18,13 +18,6 @@ installation wasn't straightforward.
 			   ("marmalade" . "https://marmalade-repo.org/packages/")
 			   ("melpa" . "https://melpa.org/packages/")))
   (package-initialize)
-  (package-install-if-needed 'helm)
-  (package-install-if-needed 'helm-google)
-  (package-install-if-needed 'helm-dash)
-  (package-install-if-needed 'helm-flyspell)
-  (package-install-if-needed 'w3m)
-  (package-install-if-needed 'projectile)
-  (package-install-if-needed 'helm-projectile)
 #+END_SRC
 
 Basic tweaks
@@ -47,11 +40,26 @@ Basic tweaks
 (setq backup-directory-alist '((".*" . "~/.Trash")))
 #+END_SRC
 
-Require helm packages.
+
+* Customize org-mode
+* Projectile, Helm, Perspective
+#+BEGIN_SRC elisp :noweb-ref package-setup
+  (package-install-if-needed 'w3m)
+  (package-install-if-needed 'helm)
+  (package-install-if-needed 'helm-google)
+  (package-install-if-needed 'helm-dash)
+  (package-install-if-needed 'helm-flyspell)
+  (package-install-if-needed 'projectile)
+  (package-install-if-needed 'helm-projectile)
+  (package-install-if-needed 'perspective)
+#+END_SRC
+
+Require helm packages (probably not necessary!)
 #+BEGIN_SRC emacs-lisp :noweb-ref require
 (require 'helm)
 (require 'helm-config)
 (require 'helm-projectile)
+(require 'perspective)
 #+END_SRC
 
 Configure =helm= options.
@@ -68,8 +76,12 @@ Configure =helm= options.
   (setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
 
   (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+
+  (define-key projectile-mode-map
+    (kbd "C-c p") 'projectile-command-map)
   (helm-mode 1)
   (projectile-mode 1)
+  (persp-mode)
 
   (global-set-key (kbd "C-x C-f") (lambda ()
     (interactive)
@@ -92,8 +104,6 @@ Configure =helm= options.
 (global-set-key (kbd "C-x b") 'helm-mini)                           ;; replace switch-to-buffer
 (global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
 #+END_SRC
-
-* Customize org-mode
 ** Babel execute functions
 #+BEGIN_SRC elisp :noweb-ref common-tweaks
 (require 'ob-python)
@@ -472,31 +482,42 @@ This displays a popup window with some helpful text and bound to a
 global key =ñC-x p=.
 
 #+BEGIN_SRC emacs-lisp :noweb-ref util-fn
-  (defun quick-help()
-    (interactive)
-    (popup-tip
-     "
-  Rectangle                 Position                      File
-  ---------                 --------                      ----------
-  Clear     - C-x r c       Save     - C-x r <SPC> /r/    Store    - (
-  Delete    - C-x r d       Jump     - C-x r j /r/
-  Kill      - C-x r k                                     Macro
-  Insert    - C-x r o       Text                          -----------
-  Register  - C-x r r /r/   ---------                     Save     - C-x C-k x /r/
-  Replace   - C-x r t       Copy     - C-x r s /r/
-  Yank      - C-x r y       Insert   - C-x r i /r/        Bookmarks
-  Number    - C-x r N       Append   - C-x r + /r/        -----------
-  Copy/kill - C-x r M-w                                   Set      - C-x r m
-                                                          Jump     - C-x r b
-                                                          List     - C-x r l
-    "
-     :point (point)
-     :around t
-     :height 45
-     :scroll-bar t
-     :margin t))
 
-  (global-set-key (kbd "C-x p") #'quick-help)
+(defun quick-help()
+    (interactive)
+    (save-excursion
+      (goto-line (point-min))
+      (popup-tip
+       "
+  Rectangle                 Position                     File
+  =========                 ========                     ====
+  Clear     - C-x r c       Save     - C-x r <SPC> /r/   Store - (
+  Delete    - C-x r d       Jump     - C-x r j /r/
+  Kill      - C-x r k                                    Macro
+  Insert    - C-x r o       Text                         =====
+  Register  - C-x r r /r/   ====                         Save  - C-x C-k x /r/
+  Replace   - C-x r t       Copy     - C-x r s /r/
+  Yank      - C-x r y       Insert   - C-x r i /r/       Bookmarks
+  Number    - C-x r N       Append   - C-x r + /r/       =========
+  Copy/kill - C-x r M-w                                  Set   - C-x r m
+                                                         Jump  - C-x r b
+                                                         List  - C-x r l
+  Projectile                Persp
+  ==========                =========
+  Find     - C-c p f        Crt/sel  - C-x x s
+  Switch   - C-c p p        Buf rm   - C-x x k
+  Grep     - C-c p g        Buf add  - C-x x a
+
+
+			      Buf set  - C-x x A
+  "
+       :point (point)
+       :around t
+       :height 45
+       :scroll-bar t
+       :margin t)))
+
+  (global-set-key (kbd "C-c p ?") #'quick-help)
 #+END_SRC
 * Load-path extension
 #+BEGIN_SRC emacs-lisp :noweb-ref extend-load-path
