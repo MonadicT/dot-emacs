@@ -1,3 +1,4 @@
+
 * How to use this file
 =git clone= this repo. Create =~/.emacs.d/init.el= with the following and load it.
 #+BEGIN_SRC exmaple :eval no
@@ -38,10 +39,14 @@ Basic tweaks
 (show-paren-mode 1)
 (display-time-mode 1)
 (setq backup-directory-alist '((".*" . "~/.Trash")))
+(setq-default indent-tabs-mode nil)
 #+END_SRC
 
 
 * Customize org-mode
+#+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
+(setq org-edit-src-content-indentation 0)
+#+END_SRC
 * Projectile, Helm, Perspective
 #+BEGIN_SRC elisp :noweb-ref package-setup
   (package-install-if-needed 'w3m)
@@ -64,31 +69,39 @@ Require helm packages (probably not necessary!)
 
 Configure =helm= options.
 #+BEGIN_SRC emacs-lisp :noweb-ref package-setup
-  (when (executable-find "curl")
-    (setq helm-google-suggest-use-curl-p t))
+(when (executable-find "curl")
+  (setq helm-google-suggest-use-curl-p t))
 
-  (setq helm-split-window-in-side-p           t                       ;; open helm buffer inside current window, not occupy whole other window
-	helm-move-to-line-cycle-in-source     t                       ;; move to end or beginning of source when reaching top or bottom of source.
-	helm-ff-search-library-in-sexp        t                       ;; search for library in `require' and `declare-function' sexp.
-	helm-scroll-amount                    8                       ;; scroll 8 lines other window using M-<next>/M-<prior>
-	helm-ff-file-name-history-use-recentf t)
+(setq helm-split-window-in-side-p           t                       ;; open helm buffer inside current window, not occupy whole other window
+      helm-move-to-line-cycle-in-source     t                       ;; move to end or beginning of source when reaching top or bottom of source.
+      helm-ff-search-library-in-sexp        t                       ;; search for library in `require' and `declare-function' sexp.
+      helm-scroll-amount                    8                       ;; scroll 8 lines other window using M-<next>/M-<prior>
+      helm-ff-file-name-history-use-recentf t)
 
-  (setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
+(setq helm-M-x-fuzzy-match t)                                       ;; optional fuzzy matching for helm-M-x
 
-  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
 
-  (define-key projectile-mode-map
-    (kbd "C-c p") 'projectile-command-map)
-  (helm-mode 1)
-  (projectile-mode 1)
-  (persp-mode)
+(define-key projectile-mode-map
+  (kbd "C-c p") 'projectile-command-map)
+(helm-mode 1)
+(projectile-mode 1)
+(persp-mode)
 
-  (global-set-key (kbd "C-x C-f") (lambda ()
-    (interactive)
-    (if (projectile-project-p)
-      (helm-projectile-find-file)
-      (helm-find-files-1 (helm-dwim-target-directory)))))
+(global-set-key (kbd "C-x C-f") (lambda ()
+  (interactive)
+  (if (projectile-project-p)
+    (helm-projectile-find-file)
+    (helm-find-files-1 (helm-dwim-target-directory)))))
 
+(with-eval-after-load 'helm-projectile
+  (defvar helm-source-file-not-found
+    (helm-build-dummy-source
+        "Create file"
+      :action (lambda (cand) (find-file cand))))
+
+
+(add-to-list 'helm-projectile-sources-list helm-source-file-not-found t))
 
 #+END_SRC
 
@@ -101,6 +114,7 @@ Configure =helm= options.
 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)   ;; make TAB works in terminal
 (define-key helm-map (kbd "C-z")  'helm-select-action)              ;; list actions using C-z
 (global-set-key (kbd "C-x C-f") 'helm-find-files)                   ;; replace find-files
+(global-set-key (kbd "C-x C-g") 'find-file)                         ;; original find-files
 (global-set-key (kbd "C-x b") 'helm-mini)                           ;; replace switch-to-buffer
 (global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
 #+END_SRC
@@ -348,10 +362,19 @@ Hooks for Typescript.
   (setq alchemist-hooks-test-on-save t)
   (setq alchemist-hooks-compile-on-save t)
 #+END_SRC
-( Elm mode
+* Elm mode
 #+BEGIN_SRC elisp :noweb-ref package-setup
+  (add-hook
+   'elm-mode-hook
+   (lambda()))
+
+  (defun my-elm-mode-hook ()
+    (setq tab-width 4 indent-tabs-mode nil))
+
+  (add-hook 'elm-mode-hook 'my-elm-mode-hook)
 (setq elm-format-on-save t)
 (setq elm-tags-on-save t)
+
 #+END_SRC
 * Parenthesis matching
 #+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
@@ -489,27 +512,25 @@ global key =ñC-x p=.
       (goto-line (point-min))
       (popup-tip
        "
-  Rectangle                 Position                     File
-  =========                 ========                     ====
-  Clear     - C-x r c       Save     - C-x r <SPC> /r/   Store - (
-  Delete    - C-x r d       Jump     - C-x r j /r/
-  Kill      - C-x r k                                    Macro
-  Insert    - C-x r o       Text                         =====
-  Register  - C-x r r /r/   ====                         Save  - C-x C-k x /r/
-  Replace   - C-x r t       Copy     - C-x r s /r/
-  Yank      - C-x r y       Insert   - C-x r i /r/       Bookmarks
-  Number    - C-x r N       Append   - C-x r + /r/       =========
-  Copy/kill - C-x r M-w                                  Set   - C-x r m
-                                                         Jump  - C-x r b
-                                                         List  - C-x r l
-  Projectile                Persp
-  ==========                =========
-  Find     - C-c p f        Crt/sel  - C-x x s
-  Switch   - C-c p p        Buf rm   - C-x x k
-  Grep     - C-c p g        Buf add  - C-x x a
-
-
-			      Buf set  - C-x x A
+  Rectangle                Position                   File
+  =========                ========                   ====
+  Clear     - C-x r c      Save     - C-x r <SPC> /r/ Store - (
+  Delete    - C-x r d      Jump     - C-x r j /r/
+  Kill      - C-x r k                                 Macro
+  Insert    - C-x r o      Text                       =====
+  Register  - C-x r r /r/  ====                       Save  - C-x C-k x /r/
+  Replace   - C-x r t      Copy     - C-x r s /r/
+  Yank      - C-x r y      Insert   - C-x r i /r/     Bookmarks
+  Number    - C-x r N      Append   - C-x r + /r/     =========
+  Copy/kill - C-x r M-w                               Set   - C-x r m
+                                                      Jump  - C-x r b
+                                                      List  - C-x r l
+  Projectile               Persp
+  ==========               =====
+  Find     - C-c p f       Crt/sel  - C-x x s
+  Switch   - C-c p p       Buf rm   - C-x x k
+  Grep     - C-c p g       Buf add  - C-x x a
+                           Buf set  - C-x x A
   "
        :point (point)
        :around t
