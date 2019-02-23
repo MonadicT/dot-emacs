@@ -605,9 +605,9 @@ q\end{tikzpicture}
 (set-register ?a "#+BEGIN_SRC elisp :eval no :noweb-ref funcs\n\n\#+END_SRC")
 (set-register ?b "#+BEGIN_SRC elisp :eval no :noweb yes :results none :exports code :tangle foo.bar\n\n\#+END_SRC")
 
-(set-register ?c "-- Copyright © 2018, Praki Prakash, All rights reserved.")
+(set-register ?c "-- Copyright © 2019, Praki Prakash, All rights reserved.")
 
-(set-register ?h "-- Copyright © 2018, Praki Prakash, All rights reserved.
+(set-register ?h "-- Copyright © 2019, Praki Prakash, All rights reserved.
 
 {-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE FlexibleContexts #-}
