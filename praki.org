@@ -47,6 +47,14 @@ Basic tweaks
 #+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
 (setq org-edit-src-content-indentation 0)
 #+END_SRC
+* Code folding
+#+BEGIN_SRC elisp :noweb-ref package-setup
+(package-install-if-needed 'origami)
+(require 'origami)
+
+
+#+END_SRC
+
 * Projectile, Helm, Perspective
 #+BEGIN_SRC elisp :noweb-ref package-setup
   (package-install-if-needed 'w3m)
@@ -473,6 +481,13 @@ Hooks for Typescript.
 (global-set-key "\C-cm"  'magit-status)
 
 (global-set-key (kbd "C-x C-f") #'helm-find-files)
+
+# Origmai key bindings
+(global-set-key (kbd "C-c f a") #'origami-close-all-nodes)
+(global-set-key (kbd "C-c f o") #'origami-open-all-nodes)
+(global-set-key (kbd "C-c f 1") #'origami-open-node)
+(global-set-key (kbd "C-c f 0") #'origami-close-node)
+
 #+end_src
 
 * Theme
