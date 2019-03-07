@@ -221,12 +221,54 @@ Install packages I need.
 
   #+END_SRC
 
-* Java mode
-#+BEGIN_SRC emacs-lisp :noweb-ref package-setup
-  (add-hook 'java-mode-hook
-	    (lambda ()
-	      (setq c-basic-offset 4)))
+* Elixir mode
+#+BEGIN_SRC elisp :noweb-ref package-setup
+  (package-install-if-needed 'elixir-mode)
+  (package-install-if-needed 'alchemist)
+
+  (defun format-elixir-code ()
+    (elixir-format))
+
+  (add-hook 'elixir-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook
+                        'format-elixir-code
+                        nil
+                        t)))
+
+  (setq alchemist-iex-program-name "/usr/local/bin/iex") ;; default: iex
+  (setq alchemist-execute-command "/usr/local/bin/elixir") ;; default: elixir
+  (setq alchemist-compile-command "/usr/local/bin/elixirc") ;; default: elixirc
+  (setq alchemist-test-status-modeline nil)
+  (setq alchemist-key-command-prefix (kbd "C-c a")) ;; default: (kbd "C-c a")
+  (setq alchemist-test-mode-highlight-tests nil) ;; default t
+  (setq alchemist-test-ask-about-save nil)
+  (setq alchemist-test-status-modeline nil)
+  (setq alchemist-test-display-compilation-output t)
+  (setq alchemist-test-truncate-lines nil) ;; default t
+  (setq alchemist-hooks-test-on-save t)
+  (setq alchemist-hooks-compile-on-save t)
 #+END_SRC
+* Elm mode
+#+BEGIN_SRC elisp :noweb-ref package-setup
+  (add-hook
+   'elm-mode-hook
+   (lambda()))
+
+  (defun my-elm-mode-hook ()
+    (setq tab-width 4 indent-tabs-mode nil))
+
+  (add-hook 'elm-mode-hook 'my-elm-mode-hook)
+(setq elm-format-on-save t)
+(setq elm-tags-on-save t)
+
+#+END_SRC
+* Git
+Set up magit mode for working with git
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+(package-install-if-needed 'magit)
+#+END_SRC
+
 * Go
 These bits setup programming mode for golang
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
@@ -271,31 +313,18 @@ Hooks for Go.
   (require 'go-autocomplete)
 
 #+END_SRC
-* Git
-Set up magit mode for working with git
+* Idris
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
-(package-install-if-needed 'magit)
+(package-install-if-needed 'idris-mode)
+(package-install-if-needed 'helm-idris)
+
 #+END_SRC
-
-* Typescript
-#+BEGIN_SRC emacs-lisp :noweb-ref package-install
-  (package-install-if-needed 'typescript-mode)
+* Java mode
+#+BEGIN_SRC emacs-lisp :noweb-ref package-setup
+  (add-hook 'java-mode-hook
+	    (lambda ()
+	      (setq c-basic-offset 4)))
 #+END_SRC
-
-Hooks for Typescript.
-
-#+BEGIN_SRC emacs-lisp :noweb-ref hooks
-(defun my-typescript-mode-hook ()
-  (setq indent-tabs-mode nil)
-  (let ((my-tab-width 2))
-    (setq tab-width my-tab-width)
-    (setq c-basic-indent my-tab-width)
-    (setq c-basic-offset my-tab-width)
-    (set (make-local-variable 'tab-stop-list)
-         (number-sequence my-tab-width 200 my-tab-width))))
-(add-hook 'typescript-mode-hook 'my-typescript-mode-hook)
-#+END_SRC
-
 * Purescript
 #+BEGIN_SRC
 (require 'repl-toggle)
@@ -342,48 +371,25 @@ Hooks for Typescript.
 (add-hook 'before-save-hook 'refmt-before-save)))
 (setq merlin-ac-setup t)
 #+END_SRC
-* Elixir mode
-#+BEGIN_SRC elisp :noweb-ref package-setup
-  (package-install-if-needed 'elixir-mode)
-  (package-install-if-needed 'alchemist)
-
-  (defun format-elixir-code ()
-    (elixir-format))
-
-  (add-hook 'elixir-mode-hook
-            (lambda ()
-              (add-hook 'before-save-hook
-                        'format-elixir-code
-                        nil
-                        t)))
-
-  (setq alchemist-iex-program-name "/usr/local/bin/iex") ;; default: iex
-  (setq alchemist-execute-command "/usr/local/bin/elixir") ;; default: elixir
-  (setq alchemist-compile-command "/usr/local/bin/elixirc") ;; default: elixirc
-  (setq alchemist-test-status-modeline nil)
-  (setq alchemist-key-command-prefix (kbd "C-c a")) ;; default: (kbd "C-c a")
-  (setq alchemist-test-mode-highlight-tests nil) ;; default t
-  (setq alchemist-test-ask-about-save nil)
-  (setq alchemist-test-status-modeline nil)
-  (setq alchemist-test-display-compilation-output t)
-  (setq alchemist-test-truncate-lines nil) ;; default t
-  (setq alchemist-hooks-test-on-save t)
-  (setq alchemist-hooks-compile-on-save t)
+* Typescript
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+  (package-install-if-needed 'typescript-mode)
 #+END_SRC
-* Elm mode
-#+BEGIN_SRC elisp :noweb-ref package-setup
-  (add-hook
-   'elm-mode-hook
-   (lambda()))
 
-  (defun my-elm-mode-hook ()
-    (setq tab-width 4 indent-tabs-mode nil))
+Hooks for Typescript.
 
-  (add-hook 'elm-mode-hook 'my-elm-mode-hook)
-(setq elm-format-on-save t)
-(setq elm-tags-on-save t)
-
+#+BEGIN_SRC emacs-lisp :noweb-ref hooks
+(defun my-typescript-mode-hook ()
+  (setq indent-tabs-mode nil)
+  (let ((my-tab-width 2))
+    (setq tab-width my-tab-width)
+    (setq c-basic-indent my-tab-width)
+    (setq c-basic-offset my-tab-width)
+    (set (make-local-variable 'tab-stop-list)
+         (number-sequence my-tab-width 200 my-tab-width))))
+(add-hook 'typescript-mode-hook 'my-typescript-mode-hook)
 #+END_SRC
+
 * Parenthesis matching
 #+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
 (global-set-key "%" 'match-paren)
