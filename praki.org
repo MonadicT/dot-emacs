@@ -51,7 +51,7 @@ Basic tweaks
 #+BEGIN_SRC elisp :noweb-ref package-setup
 (package-install-if-needed 'origami)
 (require 'origami)
-
+(global-origami-mode t)
 
 #+END_SRC
 
@@ -493,6 +493,7 @@ Hooks for Typescript.
 (global-set-key (kbd "C-c f o") #'origami-open-all-nodes)
 (global-set-key (kbd "C-c f 1") #'origami-open-node)
 (global-set-key (kbd "C-c f 0") #'origami-close-node)
+(global-set-key (kbd "C-c f t") #'origami-toggle-node)
 
 #+end_src
 
