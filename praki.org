@@ -488,7 +488,7 @@ Hooks for Typescript.
 
 (global-set-key (kbd "C-x C-f") #'helm-find-files)
 
-# Origmai key bindings
+;; Origmai key bindings
 (global-set-key (kbd "C-c f a") #'origami-close-all-nodes)
 (global-set-key (kbd "C-c f o") #'origami-open-all-nodes)
 (global-set-key (kbd "C-c f 1") #'origami-open-node)
