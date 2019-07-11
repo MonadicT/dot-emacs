@@ -262,6 +262,12 @@ Install packages I need.
 (setq elm-format-on-save t)
 (setq elm-tags-on-save t)
 
+(defun switch-to-eshell()
+  (interactive)
+  (pop-to-buffer  "*eshell*"))
+
+(global-set-key (kbd "C-?") #'switch-to-eshell)
+
 #+END_SRC
 * Git
 Set up magit mode for working with git
