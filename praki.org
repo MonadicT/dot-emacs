@@ -264,7 +264,12 @@ Install packages I need.
 
 (defun switch-to-eshell()
   (interactive)
-  (pop-to-buffer  "*eshell*"))
+  (pop-to-buffer  "*eshell*")
+  (eshell-kill-process)
+  (eshell-return-to-prompt)
+  (insert "./run.sh")
+  (eshell-send-input))
+
 
 (global-set-key (kbd "C-?") #'switch-to-eshell)
 
