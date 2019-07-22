@@ -573,6 +573,27 @@ global key =ñC-x p=.
 
   (global-set-key (kbd "C-c p ?") #'quick-help)
 #+END_SRC
+* Background for auto generated code
+File hook to indicate that the buffer is visiting an auto generated
+file. Works by examining the first 10 lines of a file for a regex.
+#+BEGIN_SRC elisp :noweb-ref util-fns
+(defun praki/find-file-hook ()
+  (save-excursion
+    (let ((l 1))
+      (while (and (< l 10) (< (point) (point-max)))
+        (goto-line l)
+        (if (string-match "-- Auto Generated Module"
+                          (message (buffer-substring-no-properties
+                                    (line-beginning-position) (line-end-position))))
+            (let ((background "black"))
+              (let ((o (make-overlay (point-min) (point-max)
+			             (current-buffer) nil t)))
+                (overlay-put o 'face `(:background ,background))
+                (overlay-put o 'praki t))))
+        (setq l (+ l 1))))))
+
+(add-hook 'find-file-hook 'praki/find-file-hook)
+#+END_SRC
 * Load-path extension
 #+BEGIN_SRC emacs-lisp :noweb-ref extend-load-path
 (add-to-list 'load-path "~/.emacs.d/lisp")
