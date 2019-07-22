@@ -251,17 +251,14 @@ Install packages I need.
 #+END_SRC
 * Elm mode
 #+BEGIN_SRC elisp :noweb-ref package-setup
-  (add-hook
-   'elm-mode-hook
-   (lambda()))
+(defun my-elm-mode-hook ()
+  (setq tab-width 4 indent-tabs-mode nil))
 
-  (defun my-elm-mode-hook ()
-    (setq tab-width 4 indent-tabs-mode nil))
-
-  (add-hook 'elm-mode-hook 'my-elm-mode-hook)
+(add-hook 'elm-mode-hook 'my-elm-mode-hook)
 (setq elm-format-on-save t)
 (setq elm-tags-on-save t)
 
+;; switch to eshell and restart elm-compiler
 (defun switch-to-eshell()
   (interactive)
   (pop-to-buffer  "*eshell*")
