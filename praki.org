@@ -270,6 +270,48 @@ Install packages I need.
 
 (global-set-key (kbd "C-?") #'switch-to-eshell)
 
+;; Run template processor when a .et file is saved
+(defun praki/after-save-hook()
+  (cond
+   ((equal (file-name-extension (buffer-file-name)) "elm")
+    ;; If there is a corresponding .et file, patch it with the changes here
+    (let* ((file-name  (buffer-file-name))
+           (et-file-name
+            (concat
+             (file-name-directory file-name)
+             (file-name-base file-name)
+             ".et")))
+      (when (file-exists-p et-file-name)
+;; TBD
+        )))
+   ((equal (file-name-extension (buffer-file-name)) "et")
+    (progn
+      ;; Process .et files to generate .elm file from it
+      (run-template-processor "${" "}$"
+                              (concat
+                               (file-name-directory (buffer-file-name))
+                               "/"
+                               (file-name-base buffer-file-name)
+                               ".elm"))))))
+(add-hook 'after-save-hook 'praki/after-save-hook)
+
+;; Format region as ELm source code
+(defun praki/elm-format-region()
+  (interactive)
+  (when (region-active-p)
+    (let* ((text (buffer-substring-no-properties (region-beginning) (region-end)))
+           repl)
+      (with-temp-buffer
+        (insert text)
+        (elm-mode-format-buffer)
+        (goto-line 2)
+        (setq repl (buffer-substring (point) (point-max))))
+      (delete-region (region-beginning) (region-end))
+      (insert repl))))
+
+
+(global-set-key (kbd "C-c C-f") 'praki/elm-format-region)
+
 #+END_SRC
 * Git
 Set up magit mode for working with git
