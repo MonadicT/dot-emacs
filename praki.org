@@ -270,6 +270,57 @@ Install packages I need.
 
 (global-set-key (kbd "C-?") #'switch-to-eshell)
 
+;; Set mode for .et files
+(add-to-list 'auto-mode-alist '("\\.et\\'" . elm-mode))
+
+;; Highlight elm code at point
+;; FIXME - buggy
+(defun praki/elm-code-at-point()
+  (interactive)
+  (let* ((curr-point (point))
+         (beg (progn
+                ;; Find a line which starts with non-whitespace
+                (while (and (> (point)  (point-min))
+                            (not (string-match
+                                  "^[[:alpha:]]"
+                                  (buffer-substring
+                                   (line-beginning-position)
+                                   (line-end-position)))))
+                  (previous-line))
+                ;; Extend backwards until a line with whitespace
+                (while (and (> (point)  (point-min))
+                            (not (string-match
+                             "^[[:space:]]*$"
+                             (buffer-substring
+                              (line-beginning-position)
+                              (line-end-position)))))
+                  (previous-line))
+                (next-line)
+                (point)))
+         (end (progn
+                ;; Find the next line starting with a '-' or alpha
+                (goto-char curr-point)
+                (while (and (< (point) (point-max))
+                            (not (string-match "^[\-[:alpha:]]"
+                                               (buffer-substring
+                                                (line-beginning-position)
+                                                (line-end-position)))))
+                  (next-line))
+                  (previous-line)
+                ;; Skip trailing whitespace
+                (while (and (< (point-min) (point))
+                            (not (string-match
+                             "^[[:space:]]*$"
+                             (buffer-substring
+                              (line-beginning-position) (line-end-position)))))
+                  (previous-line))
+                  (next-line)
+                (point))))
+    (set-mark beg)
+    (goto-char end)))
+
+(global-set-key (kbd "C-c C-.") 'praki/elm-code-at-point)
+
 ;; Run template processor when a .et file is saved
 (defun praki/after-save-hook()
   (cond
@@ -304,13 +355,12 @@ Install packages I need.
       (with-temp-buffer
         (insert text)
         (elm-mode-format-buffer)
-        (goto-line 2)
+        (goto-line 4)
         (setq repl (buffer-substring (point) (point-max))))
       (delete-region (region-beginning) (region-end))
       (insert repl))))
 
-
-(global-set-key (kbd "C-c C-f") 'praki/elm-format-region)
+(global-set-key (kbd "C-c C-b") 'praki/elm-format-region)
 
 #+END_SRC
 * Git
