@@ -251,11 +251,12 @@ Install packages I need.
 #+END_SRC
 * Elm mode
 #+BEGIN_SRC elisp :noweb-ref package-setup
+
 (defun my-elm-mode-hook ()
-  (setq tab-width 4 indent-tabs-mode nil))
+  (setq tab-width 4 indent-tabs-mode nil)
+  (setq elm-format-on-save-mode t))
 
 (add-hook 'elm-mode-hook 'my-elm-mode-hook)
-(setq elm-format-on-save t)
 (setq elm-tags-on-save t)
 
 ;; switch to eshell and restart elm-compiler
@@ -333,7 +334,7 @@ Install packages I need.
              (file-name-base file-name)
              ".et")))
       (when (file-exists-p et-file-name)
-;; TBD
+        ;; TBD
         )))
    ((equal (file-name-extension (buffer-file-name)) "et")
     (progn
@@ -354,7 +355,7 @@ Install packages I need.
            repl)
       (with-temp-buffer
         (insert text)
-        (elm-mode-format-buffer)
+        (elm-format-buffer)
         (goto-line 4)
         (setq repl (buffer-substring (point) (point-max))))
       (delete-region (region-beginning) (region-end))
