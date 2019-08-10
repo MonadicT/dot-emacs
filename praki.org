@@ -21,7 +21,11 @@ installation wasn't straightforward.
   (package-initialize)
 #+END_SRC
 
-Basic tweaks
+* Essential tweaks
+** Tweak emacs default UI to my liking.
+No silly toolbar/menu. Make emacs less verbose. Parens matching and
+display time.
+
 #+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
 (require 'tool-bar)
 (require 'scroll-bar)
@@ -30,24 +34,72 @@ Basic tweaks
 (scroll-bar-mode -1)
 (toggle-scroll-bar -1)
 (fset 'yes-or-no-p 'y-or-n-p)
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-(setq show-trailing-whitespace t)
-(setq whitespace-style '(space-mark))
+(show-paren-mode 1)
+(display-time-mode 1)
+#+END_SRC
+
+** Spell check setup
+
+#+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
 (setq ispell-program-name "/usr/local/bin/aspell")
 (add-hook 'text-mode-hook 'flyspell-mode)
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
-(show-paren-mode 1)
-(display-time-mode 1)
+#+END_SRC
+
+** Whitespace setup
+No tabs, no trailing white space.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
+(setq-default indent-tabs-mode nil)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(setq show-trailing-whitespace t)
+(setq whitespace-style '(space-mark))
 (setq backup-directory-alist '((".*" . "~/.Trash")))
 (setq-default indent-tabs-mode nil)
 #+END_SRC
 
+** Backup directory
+Reduce clutter in working directories.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
+(setq backup-directory-alist '((".*" . "~/.Trash")))
+#+END_SRC
 
 * Customize org-mode
+=org-mode= does weird things with indents in source block edit buffers.
+
 #+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
 (setq org-edit-src-content-indentation 0)
 #+END_SRC
+** Babel execute functions
+Load files needed for =org-babel= source code evaluation.
+
+#+BEGIN_SRC elisp :noweb-ref common-tweaks
+(require 'ob-python)
+(require 'ob-haskell)
+#+END_SRC
+
+** Evaluation prompt
+#+BEGIN_SRC elisp :noweb-ref common-tweaks
+(defun my-org-confirm-babel-evaluate (lang body)
+  (not (or (string= lang "python")
+	   (string= lang "haskell")
+	   (string= lang "elisp"))))
+
+(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+#+END_SRC
+
+** Htmlize
+Use =htmlize= for source code formatting.
+
+#+BEGIN_SRC emacs-lisp :noweb-ref package-install
+(setq       org-html-htmlize-output-type 'css)
+(setq-default org-html-head "<link rel=\"stylesheet\" href=\"org-mode-style.css/>")
+#+END_SRC
+
 * Code folding
+Indent-based code folding.
+
 #+BEGIN_SRC elisp :noweb-ref package-setup
 (package-install-if-needed 'origami)
 (require 'origami)
@@ -56,6 +108,8 @@ Basic tweaks
 #+END_SRC
 
 * Projectile, Helm, Perspective
+Deep integration with =Helm=!
+
 #+BEGIN_SRC elisp :noweb-ref package-setup
   (package-install-if-needed 'w3m)
   (package-install-if-needed 'helm)
@@ -126,28 +180,9 @@ Configure =helm= options.
 (global-set-key (kbd "C-x b") 'helm-mini)                           ;; replace switch-to-buffer
 (global-set-key (kbd "M-x") 'helm-M-x)                              ;; helm replacement for M-x
 #+END_SRC
-** Babel execute functions
-#+BEGIN_SRC elisp :noweb-ref common-tweaks
-(require 'ob-python)
-(require 'ob-haskell)
-#+END_SRC
-
-** Evaluation prompt
-#+BEGIN_SRC elisp :noweb-ref common-tweaks
-(defun my-org-confirm-babel-evaluate (lang body)
-  (not (or (string= lang "python")
-	   (string= lang "haskell")
-	   (string= lang "elisp"))))
-
-(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
-#+END_SRC
-
-** Htmlize
-#+BEGIN_SRC emacs-lisp :noweb-ref package-install
-(setq       org-html-htmlize-output-type 'css)
-(setq-default org-html-head "<link rel=\"stylesheet\" href=\"org-mode-style.css/>")
-#+END_SRC
 * Magit
+Essential mode for working with Git!
+
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
 ;; Magit
 (package-install-if-needed 'magit)
@@ -202,6 +237,7 @@ Install packages I need.
     ;; Clojure
     (when (not (package-installed-p 'clj-mode))
       (package-install 'clj-mode))
+
     (when (not (package-installed-p 'cider))
       (package-install 'cider))
 
@@ -222,6 +258,8 @@ Install packages I need.
   #+END_SRC
 
 * Elixir mode
+Elixir mode setup. Always run formatter before saving the buffer.
+
 #+BEGIN_SRC elisp :noweb-ref package-setup
   (package-install-if-needed 'elixir-mode)
   (package-install-if-needed 'alchemist)
@@ -249,7 +287,10 @@ Install packages I need.
   (setq alchemist-hooks-test-on-save t)
   (setq alchemist-hooks-compile-on-save t)
 #+END_SRC
+
 * Elm mode
+Elm mode setup. Run formatter before saving the buffer.
+
 #+BEGIN_SRC elisp :noweb-ref package-setup
 
 (defun my-elm-mode-hook ()
@@ -258,6 +299,15 @@ Install packages I need.
 
 (add-hook 'elm-mode-hook 'my-elm-mode-hook)
 (setq elm-tags-on-save t)
+
+#+END_SRC
+
+** Hook to kill and restart elm compiler
+Setup a less annoying way to kill the Elm compiler and restart
+it. Relying on eshell and =./run.sh= convention for restarting the
+process.
+
+#+BEGIN_SRC elisp :noweb-ref package-setup
 
 ;; switch to eshell and restart elm-compiler
 (defun switch-to-eshell()
@@ -271,9 +321,21 @@ Install packages I need.
 
 (global-set-key (kbd "C-?") #'switch-to-eshell)
 
+#+END_SRC
+
+** Editing Elm template files
+Edit =.et= files in =elm-mode=.
+
+#+BEGIN_SRC elisp :noweb-ref package-setup
+
 ;; Set mode for .et files
 (add-to-list 'auto-mode-alist '("\\.et\\'" . elm-mode))
+#+END_SRC
 
+** Find Elm code at point
+Select elm code at point.
+
+#+BEGIN_SRC elisp :noweb-ref package-setup
 ;; Highlight elm code at point
 ;; FIXME - buggy
 (defun praki/elm-code-at-point()
@@ -364,6 +426,127 @@ Install packages I need.
 (global-set-key (kbd "C-c C-b") 'praki/elm-format-region)
 
 #+END_SRC
+
+** Jail edit
+This is a minor mode for editing embedded elisp templates in Elm
+source files. Elisp code is delimited by "${" and "}$". The embedded
+block can be edited in buffer in elisp mode and saved. This is similar
+to org-mode source code.
+
+
+#+BEGIN_SRC elisp :noweb-ref package-setup
+;;
+
+(defvar-local jail-edit-mark-beg nil)
+(defvar-local jail-edit-mark-end nil)
+(defvar-local jail-edit-overlay nil)
+(defvar-local jail-edit-window-layout nil)
+
+(defvar jail-edit-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") #'jail-edit-exit)
+    (define-key map (kbd "C-c '")   #'jail-edit-exit)
+    (define-key map (kbd "C-c C-k") #'jail-edit-abort)
+    (define-key map (kbd "C-x C-s") #'jail-edit-save)
+    map))
+
+(define-minor-mode jail-edit-mode
+  "A minor mode used when editing an embedded elisp block."
+  nil " jail-Edit"
+  jail-edit-mode-map)
+
+(defun jail-edit-exit ()
+  "Save and exitn."
+  (interactive)
+  (let ((code (buffer-string))
+        (edit-point (point))
+        (beg jail-edit-mark-beg)
+        (end jail-edit-mark-end))
+    (jail-edit-save)
+    (jail-edit-abandon-edit-buffer (marker-buffer beg))
+    (goto-char (1- (+ beg edit-point)))
+    (set-marker beg nil)
+    (set-marker end nil)))
+
+
+(defun jail-edit-abort ()
+  (interactive)
+  (jail-edit-abandon-edit-buffer (marker-buffer jail-edit-mark-beg)))
+
+(defun jail-edit-save ()
+  (interactive)
+  (let ((buffer (current-buffer))
+        (code (buffer-string))
+        (mod (buffer-modified-p))
+        (beg jail-edit-mark-beg)
+        (end jail-edit-mark-end)
+        (edit-point (point))
+        (overlay jail-edit-overlay)
+        (new-end nil))
+    (with-current-buffer (marker-buffer beg)
+      (goto-char beg)
+      (when mod
+        (undo-boundary)
+        (delete-region beg end)
+        (insert code)
+        (save-buffer)
+        (move-overlay overlay beg (copy-marker (+ (marker-position beg) (length code))))
+        (setq new-end (copy-marker (+ (marker-position beg) (length code))))))
+    (jail-edit-set-local 'jail-edit-mark-end new-end)))
+
+(defun jail-edit-abandon-edit-buffer (dest-buffer)
+  (interactive "P")
+  (let ((buffer (current-buffer)))
+    (switch-to-buffer-other-window dest-buffer)
+    (jump-to-register jail-edit-window-layout)
+    (with-current-buffer buffer
+      (set-buffer-modified-p nil))
+    (kill-buffer buffer)))
+
+(defun jail-edit-src()
+  "return embedded code block around point"
+  (interactive)
+  (let* ((beg-delim "^${")
+         (end-delim "}$")
+         (res (search-backward-regexp beg-delim))
+         (beg (copy-marker (match-end 0)))
+         (res (search-forward end-delim))
+         (end (copy-marker (match-beginning 0)))
+         (overlay (make-overlay beg end))
+         (code (buffer-substring-no-properties beg end))
+         (edit-buffer (generate-new-buffer
+                       (jail-edit-buffer-name (buffer-name))))
+         (block-indent "  "))
+    (window-configuration-to-register jail-edit-window-layout)
+    (overlay-put overlay 'edit-buffer edit-buffer)
+    (overlay-put overlay 'face 'secondary-selection)
+    (overlay-put overlay :read-only "Editing in other buffer.")
+    (switch-to-buffer-other-window edit-buffer t)
+    (funcall 'emacs-lisp-mode)
+    (insert code)
+    (jail-edit-mode)
+
+    (jail-edit-set-local 'jail-edit-overlay overlay)
+    (jail-edit-set-local 'jail-edit-mark-beg beg)
+    (jail-edit-set-local 'jail-edit-mark-end end)
+    (jail-edit-set-local 'jail-edit-block-indent block-indent)
+    (add-hook 'kill-buffer-hook
+              #'(lambda ()
+                  (progn
+                    (when jail-edit-overlay (delete-overlay jail-edit-overlay))
+                    (jump-to-register jail-edit-window-layout))) nil 'local)))
+
+(defsubst jail-edit-set-local (var value)
+  (set (make-local-variable var) value))
+
+
+(defun jail-edit-buffer-name (base-buffer-name)
+  (concat "*Narrowed Edit " base-buffer-name "[ elisp ]*"))
+
+;; (remove-overlays 1 (point-max))
+(global-set-key (kbd "C-c e") 'jail-edit-src)
+#+END_SRC
+
 * Git
 Set up magit mode for working with git
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
