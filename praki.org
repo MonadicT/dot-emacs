@@ -77,8 +77,17 @@ Load files needed for =org-babel= source code evaluation.
 #+BEGIN_SRC elisp :noweb-ref common-tweaks
 (require 'ob-python)
 (require 'ob-haskell)
+(require 'ox-latex)
 #+END_SRC
 
+Evaluate these language blocks
+#+BEGIN_SRC elisp :noweb-ref common-tweaks
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (latex . t)))
+
+#+END_SRC
 ** Evaluation prompt
 #+BEGIN_SRC elisp :noweb-ref common-tweaks
 (defun my-org-confirm-babel-evaluate (lang body)
@@ -988,4 +997,30 @@ module Foo() where\n")
 <<hooks>>
 <<package-setup>>
 <<util-fn>>
+#+END_SRC
+* Custom preview modes
+** Metapost
+Compile metapost code, convert .eps to .png and open in buffer
+#+BEGIN_SRC emacs
+(add-hook 'metapost-mode-hook
+          (lambda ()
+            (add-hook 'after-save-hook 'metapost-preview nil)))
+
+(defun metapost-preview()
+  (interactive)
+  (let* ((fname (buffer-file-name))
+         (eps-name (concat (file-name-sans-extension fname) ".eps"))
+         (png-name (concat (file-name-sans-extension fname) ".png"))
+         (windows (window-list)))
+    (shell-command-to-string (concat "mpost " fname))
+    (shell-command-to-string (format "convert %s png: | convert - %s" eps-name png-name))
+    (progn
+        (when (= (length windows) 1)
+          (split-window-sensibly))
+        (with-selected-window (selected-window)
+          (switch-to-buffer-other-window (find-file-noselect png-name) t)
+          (sleep-for 0 50)
+          (revert-buffer t t)))))
+
+
 #+END_SRC
