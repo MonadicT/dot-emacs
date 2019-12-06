@@ -304,7 +304,8 @@ Elm mode setup. Run formatter before saving the buffer.
 
 (defun my-elm-mode-hook ()
   (setq tab-width 4 indent-tabs-mode nil)
-  (setq elm-format-on-save-mode t))
+  (setq elm-format-on-save-mode t)
+  (elm-format-on-save-mode))
 
 (add-hook 'elm-mode-hook 'my-elm-mode-hook)
 (setq elm-tags-on-save t)
@@ -1001,7 +1002,7 @@ module Foo() where\n")
 * Custom preview modes
 ** Metapost
 Compile metapost code, convert .eps to .png and open in buffer
-#+BEGIN_SRC emacs
+#+BEGIN_SRC elisp
 (add-hook 'metapost-mode-hook
           (lambda ()
             (add-hook 'after-save-hook 'metapost-preview nil)))
@@ -1012,15 +1013,16 @@ Compile metapost code, convert .eps to .png and open in buffer
          (eps-name (concat (file-name-sans-extension fname) ".eps"))
          (png-name (concat (file-name-sans-extension fname) ".png"))
          (windows (window-list)))
-    (shell-command-to-string (concat "mpost " fname))
-    (shell-command-to-string (format "convert %s png: | convert - %s" eps-name png-name))
-    (progn
+    (when (equal (file-name-extension fname) "mp")
+      (shell-command-to-string (concat "mpost " fname))
+      (shell-command-to-string (format "convert %s png: | convert - %s" eps-name png-name))
+      (progn
         (when (= (length windows) 1)
           (split-window-sensibly))
         (with-selected-window (selected-window)
           (switch-to-buffer-other-window (find-file-noselect png-name) t)
-          (sleep-for 0 50)
-          (revert-buffer t t)))))
+          (sleep-for 0 100)
+          (revert-buffer t t))))))
 
 
 #+END_SRC
