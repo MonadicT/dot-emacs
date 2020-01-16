@@ -1026,3 +1026,7 @@ Compile metapost code, convert .eps to .png and open in buffer
 
 
 #+END_SRC
+* Javascript tricks
+#+begin_src shell
+(function(){document.body.innerHTML='<form method="POST" action="http://localhost:4000/login"><input name="user" value="admin"/><input name="password" value="foo"/><input type="submit"></form>';document.forms[0]})();
+#+end_src
