@@ -70,6 +70,7 @@ Reduce clutter in working directories.
 
 #+BEGIN_SRC emacs-lisp :noweb-ref common-tweaks
 (setq org-edit-src-content-indentation 0)
+(require 'org-tempo)
 #+END_SRC
 ** Babel execute functions
 Load files needed for =org-babel= source code evaluation.
