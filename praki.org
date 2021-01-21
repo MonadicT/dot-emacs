@@ -36,6 +36,7 @@ display time.
 (fset 'yes-or-no-p 'y-or-n-p)
 (show-paren-mode 1)
 (display-time-mode 1)
+(set-fill-column 80)
 #+END_SRC
 
 ** Spell check setup
@@ -65,6 +66,21 @@ Reduce clutter in working directories.
 (setq backup-directory-alist '((".*" . "~/.Trash")))
 #+END_SRC
 
+#+begin_src enacs-lisp :noweb-ref package-install
+(use-package flycheck
+  :ensure t
+  :init
+  (global-flycheck-mode t))
+
+#+end_src
+** Exec path
+   #+begin_src emacs-lisp :noweb-ref package-install
+ (use-package exec-path-from-shell
+        :ensure t
+        :config
+        :disabled t
+        (exec-path-from-shell-initialize))
+   #+end_src
 * Customize org-mode
 =org-mode= does weird things with indents in source block edit buffers.
 
@@ -206,6 +222,8 @@ Essential mode for working with Git!
 ;;(package-install-if-needed 'yasnippet-bundle)
 ;;(package-install-if-needed 'yasnippet-snippets)
 ;;(package-install-if-needed 'helm-c-yasnippet)
+(use-package yasnippet
+  :ensure t)
 #+END_SRC
 
 Require =yasnippet= package.
@@ -267,6 +285,79 @@ Install packages I need.
 
   #+END_SRC
 
+* Haskell mode
+  #+begin_src emacs-lisp :noweb-ref package-install
+  ;;  (package-install-if-needed 'haskell-mode)
+  ;;  (package-install-if-needed 'lsp-haskell)
+  ;;  (require 'lsp)
+  ;;  (require 'lsp-haskell)
+  ;;  (add-hook 'haskell-mode-hook #'lsp)
+    (use-package haskell-mode
+
+      :config
+      (defcustom haskell-formatter 'ormolu
+        "The Haskell formatter to use. One of: 'ormolu, 'stylish, nil. Set it per-project in .dir-locals."
+        :safe 'symbolp)
+
+      (defun haskell-smart-format ()
+        "Format a buffer based on the value of 'haskell-formatter'."
+        (interactive)
+        (cl-ecase haskell-formatter
+          ('ormolu (ormolu-format-buffer))
+          ('stylish (haskell-mode-stylish-buffer))
+          (nil nil)
+          ))
+
+      ;; haskell-mode doesn't know about newer GHC features.
+      (let ((new-extensions '("QuantifiedConstraints"
+                              "DerivingVia"
+                              "BlockArguments"
+                              "DerivingStrategies"
+                              "StandaloneKindSignatures"
+                              )))
+        (setq
+         haskell-ghc-supported-extensions
+         (append haskell-ghc-supported-extensions new-extensions)))
+      (add-hook 'haskell-mode-hook 'ormolu-format-on-save-mode)
+      :bind (("C-c a c" . haskell-cabal-visit-file)
+             ("C-c a i" . haskell-navigate-imports)
+             ("C-c a I" . haskell-navigate-imports-return)))
+
+  (require 'hindent)
+  (add-hook 'haskell-mode-hook #'hindent-mode #'lsp-mode)
+
+    (use-package haskell-snippets
+      :after (haskell-mode yasnippet)
+      :defer)
+
+  ;; LSP support
+    (use-package lsp-haskell
+      :ensure t
+      :config
+      (setq lsp-haskell-process-path-hie "ghcide")
+      (setq lsp-haskell-process-args-hie '())
+      ;; Comment/uncomment this line to see interactions between lsp client/server.
+      ;;(setq lsp-log-io t)
+      )
+    (use-package lsp-mode
+      :ensure t
+      :hook (haskell-mode . lsp)
+      :commands lsp)
+
+    (use-package lsp-ui
+      :ensure t
+      :commands lsp-ui-mode)
+
+    (use-package ormolu)
+
+    ;; hs-lint keybinding
+    (require 'hs-lint)
+    (defun my-haskell-mode-hook ()
+      (local-set-key "\C-cl" 'hs-lint))
+    (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
+    ;; LSP
+
+  #+end_src
 * Elixir mode
 Elixir mode setup. Always run formatter before saving the buffer.
 
@@ -790,8 +881,24 @@ Hooks for Typescript.
 (global-set-key (kbd "C-c f 0") #'origami-close-node)
 (global-set-key (kbd "C-c f t") #'origami-toggle-node)
 
+(global-set-key (kbd "C-x C-6") #'enlarge-window)
 #+end_src
 
+* 3-window layout
+#+BEGIN_SRC emacs-lispt :eval no :noweb-ref util-fn
+(defun frame-layout ()
+ (interactive)
+ (delete-other-windows)
+ (split-window-vertically)
+ (enlarge-window 16)
+;;  (next-multiframe-window)
+ (split-window-horizontally)
+ (enlarge-window-horizontally 20)
+ (next-multiframe-window)
+ (eshell)
+ (next-multiframe-window))
+
+#+END_SRC
 * Theme
 Here is the code to install to =zenburn= theme and load it. Default
 cursor and mouse colors are adjusted to my personal liking.
@@ -945,9 +1052,9 @@ q\end{tikzpicture}
 (set-register ?a "#+BEGIN_SRC elisp :eval no :noweb-ref funcs\n\n\#+END_SRC")
 (set-register ?b "#+BEGIN_SRC elisp :eval no :noweb yes :results none :exports code :tangle foo.bar\n\n\#+END_SRC")
 
-(set-register ?c "-- Copyright © 2020, Praki Prakash, All rights reserved.")
+(set-register ?c "-- Copyright © 2021, Praki Prakash, All rights reserved.")
 
-(set-register ?h "-- Copyright © 2020, Praki Prakash, All rights reserved.
+(set-register ?h "-- Copyright © 2021, Praki Prakash, All rights reserved.
 
 {-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE FlexibleContexts #-}
