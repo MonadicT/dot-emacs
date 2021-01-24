@@ -287,11 +287,11 @@ Install packages I need.
 
 * Haskell mode
   #+begin_src emacs-lisp :noweb-ref package-install
-  ;;  (package-install-if-needed 'haskell-mode)
-  ;;  (package-install-if-needed 'lsp-haskell)
-  ;;  (require 'lsp)
-  ;;  (require 'lsp-haskell)
-  ;;  (add-hook 'haskell-mode-hook #'lsp)
+    ;;  (package-install-if-needed 'haskell-mode)
+    ;;  (package-install-if-needed 'lsp-haskell)
+    ;;  (require 'lsp)
+    ;;  (require 'lsp-haskell)
+    ;;  (add-hook 'haskell-mode-hook #'lsp)
     (use-package haskell-mode
 
       :config
@@ -313,49 +313,52 @@ Install packages I need.
                               "DerivingVia"
                               "BlockArguments"
                               "DerivingStrategies"
-                              "StandaloneKindSignatures"
-                              )))
+                              "StandaloneKindSignatures")))
         (setq
          haskell-ghc-supported-extensions
          (append haskell-ghc-supported-extensions new-extensions)))
+
       (add-hook 'haskell-mode-hook 'ormolu-format-on-save-mode)
       :bind (("C-c a c" . haskell-cabal-visit-file)
              ("C-c a i" . haskell-navigate-imports)
              ("C-c a I" . haskell-navigate-imports-return)))
 
-  (require 'hindent)
-  (add-hook 'haskell-mode-hook #'hindent-mode #'lsp-mode)
+    (require 'haskell-interactive-mode)
+    (require 'haskell-process)
+    (require 'hindent)
+    (add-hook 'haskell-mode-hook 'interactive-haskell-mode
+              #'hindent-mode #'lsp-mode)
 
     (use-package haskell-snippets
       :after (haskell-mode yasnippet)
       :defer)
 
-  ;; LSP support
-    (use-package lsp-haskell
-      :ensure t
-      :config
-      (setq lsp-haskell-process-path-hie "ghcide")
-      (setq lsp-haskell-process-args-hie '())
-      ;; Comment/uncomment this line to see interactions between lsp client/server.
-      ;;(setq lsp-log-io t)
-      )
-    (use-package lsp-mode
-      :ensure t
-      :hook (haskell-mode . lsp)
-      :commands lsp)
+    ;; LSP support
+      (use-package lsp-haskell
+        :ensure t
+        :config
+        (setq lsp-haskell-process-path-hie "ghcide")
+        (setq lsp-haskell-process-args-hie '())
+        ;; Comment/uncomment this line to see interactions between lsp client/server.
+        ;;(setq lsp-log-io t)
+        )
+      (use-package lsp-mode
+        :ensure t
+        :hook (haskell-mode . lsp)
+        :commands lsp)
 
-    (use-package lsp-ui
-      :ensure t
-      :commands lsp-ui-mode)
+      (use-package lsp-ui
+        :ensure t
+        :commands lsp-ui-mode)
 
-    (use-package ormolu)
+      (use-package ormolu)
 
-    ;; hs-lint keybinding
-    (require 'hs-lint)
-    (defun my-haskell-mode-hook ()
-      (local-set-key "\C-cl" 'hs-lint))
-    (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
-    ;; LSP
+      ;; hs-lint keybinding
+      (require 'hs-lint)
+      (defun my-haskell-mode-hook ()
+        (local-set-key "\C-cl" 'hs-lint))
+      (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
+      ;; LSP
 
   #+end_src
 * Elixir mode
@@ -653,127 +656,6 @@ to org-mode source code.
 Set up magit mode for working with git
 #+BEGIN_SRC emacs-lisp :noweb-ref package-install
 (package-install-if-needed 'magit)
-#+END_SRC
-
-* Go
-These bits setup programming mode for golang
-#+BEGIN_SRC emacs-lisp :noweb-ref package-install
-  (package-install-if-needed 'go-mode)
-  (package-install-if-needed 'go-eldoc)
-  (package-install-if-needed 'go-autocomplete)
-#+END_SRC
-
-Hooks for Go.
-
-#+BEGIN_SRC emacs-lisp :noweb-ref hooks
-  ;; install go-mode and go-eldoc package
-  ;; enable eldoc for go
-  (add-hook
-   'go-mode-hook
-   (lambda()
-     ;; compile command and keybinding for go
-     (setq compile-command "go build -v && go test -v && go vet")
-     (define-key (current-local-map) "\C-c\C-c" 'compile)
-     ;; enable eldoc
-     (go-eldoc-setup)
-     (setq gofmt-command "goimports")
-     ;; Key binding to jum to defn
-     (local-set-key (kbd "M-.") 'godef-jump)))
-
-  (defun my-go-mode-hook ()
-                                          ; Call Gofmt before saving
-    (add-hook 'before-save-hook 'gofmt-before-save)
-                                          ; Customize compile command to run go build
-    (if (not (string-match "go" compile-command))
-        (set (make-local-variable 'compile-command)
-             "go build -v && go test -v && go vet"))
-                                          ; Godef jump key binding
-    (setq tab-width 2 indent-tabs-mode nil)
-    (local-set-key (kbd "M-.") 'godef-jump)
-    (local-set-key (kbd "M-*") 'pop-tag-mark))
-
-  (add-hook 'go-mode-hook 'my-go-mode-hook)
-
-  ;; setup autocompletion
-  (require 'auto-complete-config)
-  (require 'go-autocomplete)
-
-#+END_SRC
-* Idris
-#+BEGIN_SRC emacs-lisp :noweb-ref package-install
-(package-install-if-needed 'idris-mode)
-(package-install-if-needed 'helm-idris)
-
-#+END_SRC
-* Java mode
-#+BEGIN_SRC emacs-lisp :noweb-ref package-setup
-  (add-hook 'java-mode-hook
-	    (lambda ()
-	      (setq c-basic-offset 4)))
-#+END_SRC
-* Purescript
-#+BEGIN_SRC
-(require 'repl-toggle)
-(require 'psci)
-(add-to-list 'rtog/mode-repl-alist '(purescript-mode . psci))
-(add-hook 'purescript-mode-hook 'inferior-psci-mode)
-;;(setq load-path (append load-path "/Users/praki/.npm-packages/bin"))
-#+END_SRC
-* Reason
-#+BEGIN_SRC elisp :noweb-ref package-setup
-(package-install-if-needed 'utop)
-
-(require 'reason-mode)
-(require 'merlin)
-
-;; Use the opam installed utop
-(setq utop-command "opam config exec -- utop -emacs")
-
-(defun shell-cmd (cmd)
-  "Returns the stdout output of a shell command or nil if the command returned
-   an error"
-  (car (ignore-errors (apply 'process-lines (split-string cmd)))))
-
-(let* ((refmt-bin (or (shell-cmd "refmt ----where")
-                      (shell-cmd "which refmt")))
-       (merlin-bin (or (shell-cmd "ocamlmerlin ----where")
-                       (shell-cmd "which ocamlmerlin")))
-       (merlin-base-dir (when merlin-bin
-                          (replace-regexp-in-string "bin/ocamlmerlin$" "" merlin-bin))))
-  ;; Add npm merlin.el to the emacs load path and tell emacs where to find ocamlmerlin
-  (when merlin-bin
-    (add-to-list 'load-path (concat merlin-base-dir "share/emacs/site-lisp/"))
-    (setq merlin-command merlin-bin))
-
-  (when refmt-bin
-    (setq refmt-command refmt-bin)))
-
-(add-hook 'reason-mode-hook (lambda ()
-                              (add-hook 'before-save-hook 'refmt-before-save)
-                              (merlin-mode)))
-(autoload 'utop-minor-mode "utop" "Minor mode for utop" t)
-(add-hook 'reason-mode-hook 'utop-minor-mode)
-(add-hook 'reason-mode-hook (lambda ()
-(add-hook 'before-save-hook 'refmt-before-save)))
-(setq merlin-ac-setup t)
-#+END_SRC
-* Typescript
-#+BEGIN_SRC emacs-lisp :noweb-ref package-install
-  (package-install-if-needed 'typescript-mode)
-#+END_SRC
-
-Hooks for Typescript.
-
-#+BEGIN_SRC emacs-lisp :noweb-ref hooks
-(defun my-typescript-mode-hook ()
-  (setq indent-tabs-mode nil)
-  (let ((my-tab-width 2))
-    (setq tab-width my-tab-width)
-    (setq c-basic-indent my-tab-width)
-    (setq c-basic-offset my-tab-width)
-    (set (make-local-variable 'tab-stop-list)
-         (number-sequence my-tab-width 200 my-tab-width))))
-(add-hook 'typescript-mode-hook 'my-typescript-mode-hook)
 #+END_SRC
 
 * Parenthesis matching
