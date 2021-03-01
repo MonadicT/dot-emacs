@@ -81,6 +81,11 @@ Reduce clutter in working directories.
         :disabled t
         (exec-path-from-shell-initialize))
    #+end_src
+** Delete duplicate entries from history
+   #+begin_src emacs-lisp :noweb-ref package-install
+(setq history-delete-duplicates t)
+
+   #+end_src
 * Customize org-mode
 =org-mode= does weird things with indents in source block edit buffers.
 
@@ -391,7 +396,7 @@ Elixir mode setup. Always run formatter before saving the buffer.
   (setq alchemist-hooks-test-on-save t)
   (setq alchemist-hooks-compile-on-save t)
 #+END_SRC
-
+v
 * Elm mode
 Elm mode setup. Run formatter before saving the buffer.
 
