@@ -22,6 +22,22 @@ installation wasn't straightforward.
 #+END_SRC
 
 * Essential tweaks
+** Set default font-size
+Set font size to 12pt
+#+begin_src emacs
+(set-face-attribute 'default nil :height 120)
+#+end_src
+
+Set eshell font to Courier
+#+begin_src emacs
+(defun my-buffer-face-mode-courrier ()
+    (interactive)
+    (setq buffer-face-mode-face '(:family "Courrier"))
+    (buffer-face-mode))
+
+(add-hook 'eshell-mode-hook 'my-buffer-face-mode-courrier)
+
+#+end_src
 ** Tweak emacs default UI to my liking.
 No silly toolbar/menu. Make emacs less verbose. Parens matching and
 display time.
@@ -86,6 +102,14 @@ Reduce clutter in working directories.
 (setq history-delete-duplicates t)
 
    #+end_src
+** Fast window switching with ace-window
+#+begin_src emacs
+(require ace-window)
+(setq aw-background nil)
+(global-set-key (kbd "M-o") 'ace-select-window)
+
+
+#+end_src
 * Customize org-mode
 =org-mode= does weird things with indents in source block edit buffers.
 
@@ -142,20 +166,21 @@ Indent-based code folding.
 Deep integration with =Helm=!
 
 #+BEGIN_SRC elisp :noweb-ref package-setup
-  (package-install-if-needed 'w3m)
-  (package-install-if-needed 'helm)
-  (package-install-if-needed 'helm-google)
-  (package-install-if-needed 'helm-dash)
-  (package-install-if-needed 'helm-flyspell)
-  (package-install-if-needed 'projectile)
-  (package-install-if-needed 'helm-projectile)
-  (package-install-if-needed 'perspective)
+(package-install-if-needed 'w3m)
+(package-install-if-needed 'helm)
+;;(package-install-if-needed 'helm-config)
+(package-install-if-needed 'helm-google)
+(package-install-if-needed 'helm-dash)
+(package-install-if-needed 'helm-flyspell)
+(package-install-if-needed 'projectile)
+(package-install-if-needed 'helm-projectile)
+(package-install-if-needed 'perspective)
 #+END_SRC
 
 Require helm packages (probably not necessary!)
 #+BEGIN_SRC emacs-lisp :noweb-ref require
 (require 'helm)
-(require 'helm-config)
+;;(require 'helm-config)
 (require 'helm-projectile)
 (require 'perspective)
 #+END_SRC
@@ -268,13 +293,14 @@ Install packages I need.
 
   #+BEGIN_SRC emacs-lisp :noweb-ref package-install
     ;; Clojure
-    (when (not (package-installed-p 'clj-mode))
-      (package-install 'clj-mode))
+    ;; (when (not (package-installed-p 'clj-mode))
+    ;;   (package-install 'clj-mode))
 
-    (when (not (package-installed-p 'cider))
-      (package-install 'cider))
+    ;; (when (
+       ;;     not (package-installed-p 'cider))
+    ;;   (package-install 'cider))
 
-    ;; javascript
+    ;; ;;     javascript
     (when (not (package-installed-p 'js2-mode))
       (package-install 'js2-mode))
 
@@ -292,78 +318,79 @@ Install packages I need.
 
 * Haskell mode
   #+begin_src emacs-lisp :noweb-ref package-install
-    ;;  (package-install-if-needed 'haskell-mode)
-    ;;  (package-install-if-needed 'lsp-haskell)
-    ;;  (require 'lsp)
-    ;;  (require 'lsp-haskell)
-    ;;  (add-hook 'haskell-mode-hook #'lsp)
-    (use-package haskell-mode
+	;;  (package-install-if-needed 'haskell-mode)
+	;;  (package-install-if-needed 'lsp-haskell)
+	;;  (require 'lsp)
+	;;  (require 'lsp-haskell)
+	;;  (add-hook 'haskell-mode-hook #'lsp)
+	(use-package haskell-mode
 
-      :config
-      (defcustom haskell-formatter 'ormolu
-        "The Haskell formatter to use. One of: 'ormolu, 'stylish, nil. Set it per-project in .dir-locals."
-        :safe 'symbolp)
+	  :config
+	  (defcustom haskell-formatter 'ormolu
+	    "The Haskell formatter to use. One of: 'ormolu, 'stylish, nil. Set it per-project in .dir-locals."
+	    :safe 'symbolp)
 
-      (defun haskell-smart-format ()
-        "Format a buffer based on the value of 'haskell-formatter'."
-        (interactive)
-        (cl-ecase haskell-formatter
-          ('ormolu (ormolu-format-buffer))
-          ('stylish (haskell-mode-stylish-buffer))
-          (nil nil)
-          ))
+	  (defun haskell-smart-format ()
+	    "Format a buffer based on the value of 'haskell-formatter'."
+	    (interactive)
+	    (cl-ecase haskell-formatter
+	      ('ormolu (ormolu-format-buffer))
+	      ('stylish (haskell-mode-stylish-buffer))
+	      (nil nil)
+	      ))
 
-      ;; haskell-mode doesn't know about newer GHC features.
-      (let ((new-extensions '("QuantifiedConstraints"
-                              "DerivingVia"
-                              "BlockArguments"
-                              "DerivingStrategies"
-                              "StandaloneKindSignatures")))
-        (setq
-         haskell-ghc-supported-extensions
-         (append haskell-ghc-supported-extensions new-extensions)))
+	  ;; haskell-mode doesn't know about newer GHC features.
+	  (let ((new-extensions '("QuantifiedConstraints"
+				  "DerivingVia"
+				  "BlockArguments"
+				  "DerivingStrategies"
+				  "StandaloneKindSignatures")))
+	    (setq
+	     haskell-ghc-supported-extensions
+	     (append haskell-ghc-supported-extensions new-extensions)))
 
-      (add-hook 'haskell-mode-hook 'ormolu-format-on-save-mode)
-      :bind (("C-c a c" . haskell-cabal-visit-file)
-             ("C-c a i" . haskell-navigate-imports)
-             ("C-c a I" . haskell-navigate-imports-return)))
+	  (add-hook 'haskell-mode-hook 'ormolu-format-on-save-mode)
+	  :bind (("C-c a c" . haskell-cabal-visit-file)
+		 ("C-c a i" . haskell-navigate-imports)
+		 ("C-c a I" . haskell-navigate-imports-return)))
 
-    (require 'haskell-interactive-mode)
-    (require 'haskell-process)
-    (require 'hindent)
-    (add-hook 'haskell-mode-hook 'interactive-haskell-mode
-              #'hindent-mode #'lsp-mode)
+    ;;    (require 'haskell-interactive-mode)
+    ;;    (require 'haskell-process)
+    ;;    (require 'hindent)
+	;; (add-hook 'haskell-mode-hook 'interactive-haskell-mode
+	;;           #'hindent-mode #'lsp-mode)
 
-    (use-package haskell-snippets
-      :after (haskell-mode yasnippet)
-      :defer)
+	(use-package haskell-snippets
+	  :after (haskell-mode yasnippet)
+	  :defer)
 
-    ;; LSP support
-      (use-package lsp-haskell
-        :ensure t
-        :config
-        (setq lsp-haskell-process-path-hie "ghcide")
-        (setq lsp-haskell-process-args-hie '())
-        ;; Comment/uncomment this line to see interactions between lsp client/server.
-        ;;(setq lsp-log-io t)
-        )
-      (use-package lsp-mode
-        :ensure t
-        :hook (haskell-mode . lsp)
-        :commands lsp)
+	;; LSP support
+	  (use-package lsp-haskell
+	    :ensure t
+	    :config
+	    (setq lsp-haskell-process-path-hie "ghcide")
+	    (setq lsp-haskell-process-args-hie '())
+	    ;; Comment/uncomment this line to see interactions between lsp client/server.
+	    ;;(setq lsp-log-io t)
+	    )
+	  (use-package lsp-mode
+	    :ensure t
+	    :hook (haskell-mode . lsp)
+	    :commands lsp)
 
-      (use-package lsp-ui
-        :ensure t
-        :commands lsp-ui-mode)
+	  (use-package lsp-ui
+	    :ensure t
+	    :commands lsp-ui-mode)
 
-      (use-package ormolu)
+	  (use-package ormolu)
 
-      ;; hs-lint keybinding
-      (require 'hs-lint)
-      (defun my-haskell-mode-hook ()
-        (local-set-key "\C-cl" 'hs-lint))
-      (add-hook 'haskell-mode-hook 'my-haskell-mode-hook)
-      ;; LSP
+	  ;; hs-lint keybinding
+	  ;; (require 'hs-lint)
+	  ;; (defun my-haskell-mode-hook ()
+	  ;; 	(local-set-key "\C-cl" 'hs-lint))
+	  ;; (add-hook 'haskell-mode-hook 'my-haskell-mode-hook
+          ;;		    )
+	  ;; LSP
 
   #+end_src
 * Elixir mode
@@ -777,10 +804,10 @@ Set up magit mode for working with git
  (interactive)
  (delete-other-windows)
  (split-window-vertically)
- (enlarge-window 16)
+ (enlarge-window 32)
 ;;  (next-multiframe-window)
  (split-window-horizontally)
- (enlarge-window-horizontally 20)
+ (enlarge-window-horizontally 32)
  (next-multiframe-window)
  (eshell)
  (next-multiframe-window))
@@ -806,9 +833,11 @@ following block makes this work. Highlighted text can be inserted with
 =Shift-Insert= key.
 
 #+BEGIN_SRC emacs-lisp :noweb-ref package-setup
-  (when (eq window-system 'x)
-    (setq x-select-enable-clipboard t)
-    (setq interprogram-paste-function 'x-cut-buffer-or-selection-value))
+(when (eq window-system 'x)
+  (setq x-select-enable-clipboard t)
+  ;; (setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
+  (setq interprogram-paste-function 'x-selecton-value))
+
 #+END_SRC
 
 * Popup help
